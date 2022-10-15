@@ -6,4 +6,8 @@ export type Lobby = {
   adminID: string
   players: Player[]
   chat: Message[]
+  diceState: {
+    id: number
+    result: number[]
+  }
 }

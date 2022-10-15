@@ -5,20 +5,41 @@ import { useEffect, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 
 import model from './Dice.gltf'
+import socket from '../../../../socket'
 
-export default function Model({
-  offset,
-  factors,
-  diceThrown,
-  setDiceThrown,
-  throwDie,
-  setResult,
-}) {
+export default function Model({ offset }) {
   const [thrown, setThrown] = useState(false)
   const [checkingForResult, setCheckingForResult] = useState(false)
 
   const [velocity, setVelocity] = useState([0, 0, 0])
   const [quaternionRotation, setQuaternionRotation] = useState([0, 0, 0, 0])
+
+  useEffect(() => {
+    socket.on('diceThrown', (values) => {
+      api.position.set(offset, 10, offset)
+      api.velocity.set(
+        values.velocity[0],
+        values.velocity[1],
+        values.velocity[2]
+      )
+      api.rotation.set(
+        values.rotation[0],
+        values.rotation[1],
+        values.rotation[2]
+      )
+      api.angularVelocity.set(
+        values.angularVelocity[0],
+        values.angularVelocity[1],
+        values.angularVelocity[2]
+      )
+      setThrown(true)
+    })
+
+    return () => {
+      socket.off('diceThrown')
+    }
+  }, [])
+
   useEffect(() => {
     const unsubscribeVelocity = api.velocity.subscribe((velocity) =>
       setVelocity(velocity)
@@ -32,16 +53,8 @@ export default function Model({
     }
   }, [])
 
-  useEffect(() => {
-    if (diceThrown) {
-      throwDice()
-      setDiceThrown(false)
-    }
-  }, [diceThrown])
-
   function throwDice() {
-    api.position.set(offset, 15, offset)
-    api.angularVelocity.set(factors[0], factors[1], factors[2])
+    socket.emit('throwDice')
     setThrown(true)
   }
 
@@ -62,7 +75,7 @@ export default function Model({
       if (stopped) {
         setThrown(false)
         setCheckingForResult(false)
-        setResult(getResult())
+        socket.emit('emitDiceResult', getResult())
       }
     }
   })
@@ -109,7 +122,7 @@ export default function Model({
   return (
     <mesh
       ref={diceRef}
-      onClick={throwDie}
+      onClick={throwDice}
       geometry={nodes.Dice.geometry}
       material={materials.Material}
     />

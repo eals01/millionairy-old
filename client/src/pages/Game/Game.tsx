@@ -20,9 +20,6 @@ import Chat, { ChatContainer } from '../../components/Chat'
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
-  const [factors, setFactors] = useState<number[]>([])
-  const [diceThrown, setDiceThrown] = useState(false)
-  const [result, setResult] = useState([0, 0])
   const [players, setPlayers] = useState<Player[]>([])
 
   useEffect(() => {
@@ -38,12 +35,27 @@ export default function Game() {
     }
   }, [])
 
-  function throwDice() {}
+  function throwDice() {
+    socket.emit('throwDice')
+  }
 
   if (!loaded) return null
   return (
     <GameContainer>
       <Chat />
+      <div
+        style={{
+          position: 'absolute',
+          zIndex: 1,
+          top: 20,
+          left: 20,
+          width: 400,
+          height: 200,
+          background: 'rgba(0,0,0,0.5)',
+        }}
+      >
+        <button onClick={throwDice}>Throw dice</button>
+      </div>
       <Canvas camera={{ position: [100, 0, 0], fov: 30 }}>
         <ambientLight intensity={0.3} />
         <spotLight
@@ -76,26 +88,8 @@ export default function Game() {
                 <Money height={index} offsetZ={columnIndex * 6} />
               ))
             )}
-            <Dice
-              offset={2.5}
-              factors={factors.slice(0, 2)}
-              diceThrown={diceThrown}
-              setDiceThrown={setDiceThrown}
-              throwDie={throwDice}
-              setResult={(individualResult: number) =>
-                setResult([individualResult, result[1]])
-              }
-            />
-            <Dice
-              offset={-2.5}
-              factors={factors.slice(2, 5)}
-              diceThrown={diceThrown}
-              setDiceThrown={setDiceThrown}
-              throwDie={throwDice}
-              setResult={(individualResult: number) =>
-                setResult([result[0], individualResult])
-              }
-            />
+            <Dice offset={2.5} />
+            <Dice offset={-2.5} />
             {[...Array(20)].map((__, index) => (
               <Chance height={index / 4} key={`chance${index}`} />
             ))}

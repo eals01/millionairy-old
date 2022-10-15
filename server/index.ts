@@ -49,7 +49,11 @@ io.on('connection', socket => {
       code: createLobbyCode(),
       adminID: socket.id,
       players: [],
-      chat: []
+      chat: [],
+      diceState: {
+        id: 0,
+        result: [0, 0]
+      }
     }
     LOBBIES.push(lobby)
 
@@ -108,6 +112,41 @@ io.on('connection', socket => {
       io.to(socket.id).emit('navigateHome')
     } else {
       io.to(socket.id).emit('updateLobby', lobby)
+    }
+  })
+
+  socket.on('throwDice', () => {
+    if (!lobby) return
+    io.to(lobby.code).emit('diceThrown', {
+      velocity: [
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5)
+      ],
+      rotation: [
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI
+      ],
+      angularVelocity: [
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5)
+      ]
+    })
+  })
+
+  socket.on('emitDiceResult', result => {
+    if (!lobby) return
+    if (lobby.diceState.result[0] === 0) {
+      lobby.diceState.result[0] = result
+    } else if (lobby.diceState.result[1] === 0) {
+      lobby.diceState.result[1] = result
+      lobby.players[0].currentSpace += lobby.diceState.result[0] + lobby.diceState.result[1]
+      io.to(lobby.code).emit('updateLobby', lobby)
+      console.log(lobby.diceState.result[0] + lobby.diceState.result[1])
+      lobby.diceState.result[0] = 0
+      lobby.diceState.result[1] = 0
     }
   })
 
