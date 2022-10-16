@@ -21,6 +21,7 @@ import Chat, { ChatContainer } from '../../components/Chat'
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
   const [players, setPlayers] = useState<Player[]>([])
+  const [isCurrentPlayer, setIsCurrentPlayer] = useState(false)
 
   useEffect(() => {
     socket.emit('gamePageEntered')
@@ -28,6 +29,9 @@ export default function Game() {
     socket.on('updateLobby', (lobby) => {
       setLoaded(true)
       setPlayers(lobby.players)
+      setIsCurrentPlayer(
+        lobby.players[lobby.currentPlayerIndex].id === socket.id
+      )
     })
 
     return () => {
@@ -47,16 +51,41 @@ export default function Game() {
         style={{
           position: 'absolute',
           zIndex: 1,
-          top: 20,
-          left: 20,
+          bottom: 20,
+          right: 20,
           width: 400,
           height: 200,
-          background: 'rgba(0,0,0,0.5)',
+          background: 'rgba(255,255,255,0.5)',
         }}
       >
         <button onClick={throwDice}>Throw dice</button>
+        <div>
+          {players.map((player, index) => {
+            return (
+              <div key={index} style={{ display: 'flex' }}>
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    background: player.color,
+                  }}
+                />
+                <span>
+                  <b>{player.id.substring(0, 3)}</b>
+                  <span style={{ marginLeft: '16px' }}>
+                    space: {player.currentSpace}
+                  </span>
+                </span>
+                {player.id === socket.id && (
+                  <span style={{ marginLeft: '16px' }}>(you)</span>
+                )}
+              </div>
+            )
+          })}
+          <p>Your turn: {isCurrentPlayer.toString()}</p>
+        </div>
       </div>
-      <Canvas camera={{ position: [100, 0, 0], fov: 30 }}>
+      <Canvas camera={{ position: [100, 0, 0], fov: 40 }}>
         <ambientLight intensity={0.3} />
         <spotLight
           intensity={0.6}
@@ -72,11 +101,14 @@ export default function Game() {
         />
         <Physics allowSleep={true}>
           <Debug>
-            <Piece currentSpace={players[0].currentSpace} />
+            {players.map((player, index) => {
+              return <Piece key={player.id} player={player} offset={index} />
+            })}
             <House color='red' />
-            {[...Array(3)].map((number, columnIndex) =>
-              [...Array(3)].map((number, index) => (
+            {[...Array(3)].map((__, columnIndex) =>
+              [...Array(3)].map((__, index) => (
                 <PropertyCard
+                  key={columnIndex + index + 'pc'}
                   offsetX={index * 2}
                   offsetY={index}
                   offsetZ={columnIndex * -6}
@@ -85,11 +117,15 @@ export default function Game() {
             )}
             {[...Array(3)].map((_, columnIndex) =>
               [...Array(10)].map((_, index) => (
-                <Money height={index} offsetZ={columnIndex * 6} />
+                <Money
+                  key={columnIndex + index + 'm'}
+                  height={index}
+                  offsetZ={columnIndex * 6}
+                />
               ))
             )}
-            <Dice offset={2.5} />
-            <Dice offset={-2.5} />
+            <Dice offset={0} active={isCurrentPlayer} />
+            <Dice offset={2} active={isCurrentPlayer} />
             {[...Array(20)].map((__, index) => (
               <Chance height={index / 4} key={`chance${index}`} />
             ))}

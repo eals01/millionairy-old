@@ -74,9 +74,9 @@ export default function Lobby() {
         <UserCircle ref={userCircleRef}>
           {players.map((player, key) => {
             return (
-              <span key={key}>
+              <span key={key} style={{ color: player.color }}>
                 {(adminID === player.id ? '★' : '') +
-                  player.id.substring(0, 5) +
+                  player.id.substring(0, 3) +
                   (player.id === socket.id ? ' (you)' : '')}
               </span>
             )
@@ -111,7 +111,6 @@ const UserCircleContainer = styled.div`
   align-items: center;
   width: 400px;
   height: 400px;
-  background: whitesmoke;
 `
 
 const UserCircle = styled.div`

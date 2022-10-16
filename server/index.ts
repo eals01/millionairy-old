@@ -14,6 +14,8 @@ const io = new Server(httpServer, {
   }
 })
 
+const SPACE_COUNT = 40
+
 const LOBBIES: Lobby[] = []
 
 function createLobbyCode() {
@@ -39,7 +41,8 @@ io.on('connection', socket => {
 
   let player: Player = {
     id: socket.id,
-    currentSpace: 0
+    currentSpace: 0,
+    color: ''
   }
 
   let lobby: Lobby | undefined = undefined
@@ -48,12 +51,11 @@ io.on('connection', socket => {
     const lobby = {
       code: createLobbyCode(),
       adminID: socket.id,
+      availableColors: ['red', 'blue', 'yellow', 'green'],
       players: [],
       chat: [],
-      diceState: {
-        id: 0,
-        result: [0, 0]
-      }
+      diceState: [],
+      currentPlayerIndex: -1
     }
     LOBBIES.push(lobby)
 
@@ -68,11 +70,13 @@ io.on('connection', socket => {
 
     if (lobby) {
       socket.join(code)
+      const color = lobby.availableColors.pop()
+      if (color) player.color = color
 
       lobby.players.push(player)
       io.to(socket.id).emit('lobbyJoined')
 
-      lobby.chat.push({ author: '', value: player.id.substring(0, 5) + ' joined the game!' })
+      lobby.chat.push({ author: '', value: socket.id.substring(0, 3) + ' joined the game!' })
       io.to(lobby.code).emit('updateChat', lobby.chat)
 
       console.log(socket.id.substring(0, 3) + ' joined ' + lobby.code)
@@ -100,9 +104,11 @@ io.on('connection', socket => {
 
   socket.on('startGame', () => {
     if (lobby) {
+      lobby.currentPlayerIndex = Math.ceil(Math.random() * lobby.players.length - 1)
+
       io.to(lobby.code).emit('gameStarted')
 
-      lobby.chat.push({ author: '', value: socket.id.substring(0, 5) + ' started the game!' })
+      lobby.chat.push({ author: '', value: socket.id.substring(0, 3) + ' started the game!' })
       io.to(lobby.code).emit('updateChat')
     }
   })
@@ -121,14 +127,23 @@ io.on('connection', socket => {
       velocity: [
         Math.ceil(Math.random() * 10 - 5),
         Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
         Math.ceil(Math.random() * 10 - 5)
       ],
       rotation: [
         Math.random() * 2 * Math.PI,
         Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI,
+        Math.random() * 2 * Math.PI,
         Math.random() * 2 * Math.PI
       ],
       angularVelocity: [
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
+        Math.ceil(Math.random() * 10 - 5),
         Math.ceil(Math.random() * 10 - 5),
         Math.ceil(Math.random() * 10 - 5),
         Math.ceil(Math.random() * 10 - 5)
@@ -138,15 +153,25 @@ io.on('connection', socket => {
 
   socket.on('emitDiceResult', result => {
     if (!lobby) return
-    if (lobby.diceState.result[0] === 0) {
-      lobby.diceState.result[0] = result
-    } else if (lobby.diceState.result[1] === 0) {
-      lobby.diceState.result[1] = result
-      lobby.players[0].currentSpace += lobby.diceState.result[0] + lobby.diceState.result[1]
-      io.to(lobby.code).emit('updateLobby', lobby)
-      console.log(lobby.diceState.result[0] + lobby.diceState.result[1])
-      lobby.diceState.result[0] = 0
-      lobby.diceState.result[1] = 0
+    if (lobby.players[lobby.currentPlayerIndex].id === socket.id) {
+      lobby.diceState.push(result)
+      if (lobby.diceState.length === 2) {
+        lobby.players[lobby.currentPlayerIndex].currentSpace =
+          (lobby.players[lobby.currentPlayerIndex].currentSpace +
+            lobby.diceState.reduce((a, b) => a + b, 0)) %
+          SPACE_COUNT
+
+        console.log(
+          socket.id.substring(0, 3) + ' rolled a ' + (lobby.diceState[0] + lobby.diceState[1])
+        )
+        lobby.diceState = []
+        setTimeout(() => {
+          if (lobby) {
+            lobby.currentPlayerIndex = (lobby.currentPlayerIndex + 1) % lobby.players.length
+            io.to(lobby.code).emit('updateLobby', lobby)
+          }
+        }, 500)
+      }
     }
   })
 
@@ -154,14 +179,17 @@ io.on('connection', socket => {
     if (lobby) {
       const wasAdmin = player.id === lobby.adminID
 
+      lobby.availableColors.push(player.color)
+
       const remainingPlayers = (lobby.players = lobby.players.filter(player => {
         return player.id !== socket.id
       }))
       lobby.players = remainingPlayers
+
       if (wasAdmin && lobby.players.length > 0) lobby.adminID = lobby.players[0].id
       io.to(lobby.code).emit('updateLobby', lobby)
 
-      lobby.chat.push({ author: '', value: player.id.substring(0, 5) + ' left the game...' })
+      lobby.chat.push({ author: '', value: player.id.substring(0, 3) + ' left the game...' })
       io.to(lobby.code).emit('updateChat', lobby.chat)
 
       socket.leave(lobby.code)

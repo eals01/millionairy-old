@@ -7,7 +7,7 @@ import { useFrame } from '@react-three/fiber'
 import model from './Dice.gltf'
 import socket from '../../../../socket'
 
-export default function Model({ offset }) {
+export default function Model({ offset, active }) {
   const [thrown, setThrown] = useState(false)
   const [checkingForResult, setCheckingForResult] = useState(false)
 
@@ -16,27 +16,28 @@ export default function Model({ offset }) {
 
   useEffect(() => {
     socket.on('diceThrown', (values) => {
+      setThrown(true)
       api.position.set(offset, 10, offset)
       api.velocity.set(
-        values.velocity[0],
-        values.velocity[1],
-        values.velocity[2]
+        values.velocity[0 + offset],
+        values.velocity[1 + offset],
+        values.velocity[2 + offset]
       )
       api.rotation.set(
-        values.rotation[0],
-        values.rotation[1],
-        values.rotation[2]
+        values.rotation[0 + offset],
+        values.rotation[1 + offset],
+        values.rotation[2 + offset]
       )
       api.angularVelocity.set(
-        values.angularVelocity[0],
-        values.angularVelocity[1],
-        values.angularVelocity[2]
+        values.angularVelocity[0 + offset],
+        values.angularVelocity[1 + offset],
+        values.angularVelocity[2 + offset]
       )
-      setThrown(true)
     })
 
     return () => {
       socket.off('diceThrown')
+      socket.off('updateLobby')
     }
   }, [])
 
@@ -54,8 +55,9 @@ export default function Model({ offset }) {
   }, [])
 
   function throwDice() {
-    socket.emit('throwDice')
-    setThrown(true)
+    if (active) {
+      socket.emit('throwDice')
+    }
   }
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export default function Model({ offset }) {
       if (stopped) {
         setThrown(false)
         setCheckingForResult(false)
-        socket.emit('emitDiceResult', getResult())
+        if (active) socket.emit('emitDiceResult', getResult())
       }
     }
   })

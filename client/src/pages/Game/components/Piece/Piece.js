@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useCylinder } from '@react-three/cannon'
 import { useFrame } from '@react-three/fiber'
 
@@ -125,31 +124,31 @@ const SPACES = [
   },
 ]
 
-export default function Piece({ currentSpace }) {
+export default function Piece({ player, offset }) {
   const [pieceRef, api] = useCylinder(() => ({
-    mass: 5,
+    mass: 0,
     type: 'Dynamic',
     args: [0.75, 0.75, 2],
     position: [
-      SPACES[currentSpace].position.x,
-      1,
-      SPACES[currentSpace].position.z,
+      SPACES[player.currentSpace].position.x,
+      1 + offset,
+      SPACES[player.currentSpace].position.z,
     ],
     sleepSpeedLimit: 1,
   }))
 
   useFrame(() => {
     api.position.set(
-      SPACES[currentSpace].position.x,
-      1,
-      SPACES[currentSpace].position.z
+      SPACES[player.currentSpace].position.x,
+      1 + offset * 3,
+      SPACES[player.currentSpace].position.z
     )
   })
 
   return (
     <mesh ref={pieceRef}>
       <cylinderGeometry args={[0.75, 0.75, 2]} />
-      <meshPhysicalMaterial metalness={1} clearcoat={1} />
+      <meshPhysicalMaterial color={player.color} />
     </mesh>
   )
 }

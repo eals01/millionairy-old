@@ -59,7 +59,7 @@ export default function Chat() {
   function sendChat() {
     if (input.length > 0) {
       socket.emit('sendChat', {
-        author: socket.id.substring(0, 5),
+        author: socket.id.substring(0, 3),
         value: input,
       })
       setInput('')
@@ -76,13 +76,13 @@ export default function Chat() {
   return (
     <ChatContainer>
       <MessageContainer ref={messageContainerRef}>
-        {chat.map((message) =>
+        {chat.map((message, index) =>
           message.author === '' ? (
-            <ChatMessage>
+            <ChatMessage key={index}>
               <Alert>{message.value}</Alert>
             </ChatMessage>
           ) : (
-            <ChatMessage>
+            <ChatMessage key={index}>
               <Author>{message.author}</Author>
               <Value>{message.value}</Value>
             </ChatMessage>

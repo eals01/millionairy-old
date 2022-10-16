@@ -66,7 +66,6 @@ const HomeContainer = styled.div`
     box-sizing: border-box;
     text-align: center;
   }
-
   > span {
     position: relative;
   }
