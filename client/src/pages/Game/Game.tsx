@@ -18,6 +18,8 @@ import Money from './components/Money/Money'
 import { Player } from '../../../../types/Player'
 import Chat, { ChatContainer } from '../../components/Chat'
 
+import SPACES from './components/Board/SPACES'
+
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
   const [players, setPlayers] = useState<Player[]>([])
@@ -43,6 +45,31 @@ export default function Game() {
     socket.emit('throwDice')
   }
 
+  function moveOne() {
+    socket.emit('emitDiceResult', 0)
+    socket.emit('emitDiceResult', 1)
+  }
+
+  function positionPiece() {
+    const player = players.find((player) => {
+      return socket.id === player.id
+    })
+    if (!player) return [0, 0, 0]
+    let sharesSpaceWith = 0
+    for (const otherPlayer of players) {
+      if (player === otherPlayer) break
+      if (player.currentSpace && otherPlayer.currentSpace) {
+        sharesSpaceWith++
+      }
+    }
+    const boundaries = SPACES[player.currentSpace].boundaries
+    return [
+      (boundaries.start[0] + boundaries.end[0]) / 2,
+      1 + sharesSpaceWith,
+      (boundaries.start[2] + boundaries.end[2]) / 2,
+    ]
+  }
+
   if (!loaded) return null
   return (
     <GameContainer>
@@ -59,6 +86,7 @@ export default function Game() {
         }}
       >
         <button onClick={throwDice}>Throw dice</button>
+        <button onClick={moveOne}>Move 1</button>
         <div>
           {players.map((player, index) => {
             return (
@@ -102,7 +130,14 @@ export default function Game() {
         <Physics allowSleep={true}>
           <Debug>
             {players.map((player, index) => {
-              return <Piece key={player.id} player={player} offset={index} />
+              return (
+                <Piece
+                  key={player.id}
+                  player={player}
+                  position={positionPiece()}
+                  offset={index}
+                />
+              )
             })}
             <House color='red' />
             {[...Array(3)].map((__, columnIndex) =>
@@ -132,6 +167,14 @@ export default function Game() {
             {[...Array(20)].map((__, index) => (
               <Fortune height={index / 4} key={`fortune${index}`} />
             ))}
+            <Marker
+              pos={SPACES[players[0].currentSpace].boundaries.start}
+              color='red'
+            />
+            <Marker
+              pos={SPACES[players[0].currentSpace].boundaries.end}
+              color='blue'
+            />
             <Board />
             <Table />
           </Debug>
@@ -152,3 +195,12 @@ const GameContainer = styled.div`
     top: 2em;
   }
 `
+
+function Marker({ pos, color }: { pos: number[]; color: string }) {
+  return (
+    <mesh position={pos}>
+      <cylinderGeometry args={[0.1, 0.1, 10]} />
+      <meshPhysicalMaterial color={color} />
+    </mesh>
+  )
+}

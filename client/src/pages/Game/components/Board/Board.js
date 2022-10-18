@@ -8,6 +8,7 @@ export default function Board() {
     type: 'Static',
     args: [50, 0.3, 50],
     position: [0, -0.15, 0],
+    rotation: [0, -Math.PI / 2, 0],
   }))
 
   const { nodes, materials } = useGLTF(model)

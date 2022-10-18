@@ -36,13 +36,17 @@ function createLobbyCode() {
   return result
 }
 
+function movePlayer(player: Player, amount: number) {
+  player.currentSpace = (player.currentSpace + amount) % SPACE_COUNT
+}
+
 io.on('connection', socket => {
   console.log(socket.id.substring(0, 3) + ' connected')
 
   let player: Player = {
     id: socket.id,
-    currentSpace: 0,
-    color: ''
+    color: '',
+    currentSpace: 0
   }
 
   let lobby: Lobby | undefined = undefined
@@ -156,21 +160,22 @@ io.on('connection', socket => {
     if (lobby.players[lobby.currentPlayerIndex].id === socket.id) {
       lobby.diceState.push(result)
       if (lobby.diceState.length === 2) {
-        lobby.players[lobby.currentPlayerIndex].currentSpace =
-          (lobby.players[lobby.currentPlayerIndex].currentSpace +
-            lobby.diceState.reduce((a, b) => a + b, 0)) %
-          SPACE_COUNT
-
         console.log(
           socket.id.substring(0, 3) + ' rolled a ' + (lobby.diceState[0] + lobby.diceState[1])
         )
+
+        movePlayer(
+          lobby.players[lobby.currentPlayerIndex],
+          lobby.diceState.reduce((a, b) => a + b, 0)
+        )
         lobby.diceState = []
+        const timeUntilCheckingForNewResult = 500
         setTimeout(() => {
           if (lobby) {
             lobby.currentPlayerIndex = (lobby.currentPlayerIndex + 1) % lobby.players.length
             io.to(lobby.code).emit('updateLobby', lobby)
           }
-        }, 500)
+        }, timeUntilCheckingForNewResult)
       }
     }
   })
@@ -181,6 +186,9 @@ io.on('connection', socket => {
 
       lobby.availableColors.push(player.color)
 
+      if (lobby.players[lobby.currentPlayerIndex].id === socket.id) {
+        lobby.currentPlayerIndex = (lobby.currentPlayerIndex + 1) % (lobby.players.length - 1)
+      }
       const remainingPlayers = (lobby.players = lobby.players.filter(player => {
         return player.id !== socket.id
       }))
