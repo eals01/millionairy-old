@@ -1,7 +1,7 @@
 import { useBox } from '@react-three/cannon'
 
-export default function House() {
-  const [houseRef] = useBox(() => ({
+export default function Table() {
+  const [tableRef] = useBox(() => ({
     mass: 1,
     type: 'Static',
     args: [100, 2, 200],
@@ -10,7 +10,7 @@ export default function House() {
   }))
 
   return (
-    <mesh ref={houseRef}>
+    <mesh ref={tableRef} receiveShadow>
       <boxGeometry args={[100, 2, 200]} />
       <meshPhongMaterial attach='material' color='#806517' />
     </mesh>

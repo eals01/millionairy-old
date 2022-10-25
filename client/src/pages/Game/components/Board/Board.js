@@ -18,6 +18,7 @@ export default function Board() {
       <mesh
         geometry={nodes.Cube_2.geometry}
         material={materials['Material.001']}
+        receiveShadow
       />
     </group>
   )

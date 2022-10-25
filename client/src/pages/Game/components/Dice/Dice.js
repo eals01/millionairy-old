@@ -17,6 +17,7 @@ export default function Model({ offset, active }) {
   useEffect(() => {
     socket.on('diceThrown', (values) => {
       setThrown(true)
+      api.position.set(0, 0, 0)
       api.position.set(offset, 10, offset)
       api.velocity.set(
         values.velocity[0 + offset],
@@ -127,6 +128,7 @@ export default function Model({ offset, active }) {
       onClick={throwDice}
       geometry={nodes.Dice.geometry}
       material={materials.Material}
+      castShadow
     />
   )
 }

@@ -50,23 +50,32 @@ export default function Game() {
     socket.emit('emitDiceResult', 1)
   }
 
-  function positionPiece() {
-    const player = players.find((player) => {
-      return socket.id === player.id
-    })
-    if (!player) return [0, 0, 0]
+  function positionPiece(player: Player) {
     let sharesSpaceWith = 0
     for (const otherPlayer of players) {
-      if (player === otherPlayer) break
-      if (player.currentSpace && otherPlayer.currentSpace) {
+      if (player.currentSpace == otherPlayer.currentSpace) {
         sharesSpaceWith++
       }
     }
+
+    let playerNumberOnSpace = 0
+    for (const otherPlayer of players) {
+      if (player === otherPlayer) break
+      if (player.currentSpace == otherPlayer.currentSpace) {
+        playerNumberOnSpace++
+      }
+    }
+
     const boundaries = SPACES[player.currentSpace].boundaries
+    const boundaryWidth = boundaries.start[0] - boundaries.end[0]
+    const boundaryHeight = boundaries.start[2] - boundaries.end[2]
+
     return [
-      (boundaries.start[0] + boundaries.end[0]) / 2,
-      1 + sharesSpaceWith,
-      (boundaries.start[2] + boundaries.end[2]) / 2,
+      boundaries.start[0] -
+        (boundaryWidth / (sharesSpaceWith + 1)) * (playerNumberOnSpace + 1),
+      1,
+      boundaries.start[2] -
+        (boundaryHeight / (sharesSpaceWith + 1)) * (playerNumberOnSpace + 1),
     ]
   }
 
@@ -113,13 +122,16 @@ export default function Game() {
           <p>Your turn: {isCurrentPlayer.toString()}</p>
         </div>
       </div>
-      <Canvas camera={{ position: [100, 0, 0], fov: 40 }}>
-        <ambientLight intensity={0.3} />
+      <Canvas shadows camera={{ position: [100, 0, 0], fov: 40 }}>
+        <ambientLight intensity={0.2} />
         <spotLight
-          intensity={0.6}
-          angle={1}
-          penumbra={1}
+          intensity={0.8}
+          angle={Math.PI / 4}
+          penumbra={0.5}
           position={[50, 100, 50]}
+          castShadow
+          shadow-mapSize-height={2048}
+          shadow-mapSize-width={2048}
         />
         <OrbitControls
           minPolarAngle={Math.PI / 3}
@@ -129,13 +141,12 @@ export default function Game() {
         />
         <Physics allowSleep={true}>
           <Debug>
-            {players.map((player, index) => {
+            {players.map((player) => {
               return (
                 <Piece
                   key={player.id}
                   player={player}
-                  position={positionPiece()}
-                  offset={index}
+                  position={positionPiece(player)}
                 />
               )
             })}
@@ -167,14 +178,6 @@ export default function Game() {
             {[...Array(20)].map((__, index) => (
               <Fortune height={index / 4} key={`fortune${index}`} />
             ))}
-            <Marker
-              pos={SPACES[players[0].currentSpace].boundaries.start}
-              color='red'
-            />
-            <Marker
-              pos={SPACES[players[0].currentSpace].boundaries.end}
-              color='blue'
-            />
             <Board />
             <Table />
           </Debug>

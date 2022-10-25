@@ -10,7 +10,7 @@ export default function House({ color }) {
   }))
 
   return (
-    <mesh ref={houseRef}>
+    <mesh ref={houseRef} castShadow>
       <boxGeometry args={[1, 1, 1.5]} />
       <meshPhongMaterial attach='material' color={color} />
     </mesh>
