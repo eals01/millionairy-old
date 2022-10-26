@@ -1,8 +1,7 @@
 import * as THREE from 'three'
 import { useLoader } from '@react-three/fiber'
-import face from './faces/face1.png'
 
-export default function PropertyCard({ position }) {
+export default function PropertyCard({ position, face }) {
   const texture = useLoader(THREE.TextureLoader, face)
 
   return (

@@ -14,4 +14,6 @@ export type Space = {
     parking: number[]
     house: number
   }
+  color: string
+  propertyNumber: number
 }

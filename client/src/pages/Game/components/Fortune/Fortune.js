@@ -11,7 +11,7 @@ export default function Fortune({ height }) {
   }))
 
   return (
-    <mesh ref={fortuneRef}>
+    <mesh ref={fortuneRef} castShadow>
       <boxGeometry args={[8, 0.05, 5]} />
       <meshPhongMaterial attach='material' color='lightblue' />
     </mesh>

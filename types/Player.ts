@@ -3,4 +3,5 @@ export type Player = {
   color: string
   currentSpace: number
   ownedSpaces: number[]
+  money: number
 }

@@ -1,10 +1,10 @@
-import styled from 'styled-components'
-import { Space } from '../../../../../../../types/Space'
+import styled, { css } from 'styled-components'
+import { Space } from '../../../../../../types/Space'
 
 export default function Property({ space }: { space: Space }) {
   return (
     <Card>
-      <img src='https://loremflickr.com/250/100' />
+      <Color color={space.color} />
       <h3>{space.name}</h3>
       <table>
         <tbody>
@@ -59,11 +59,11 @@ const Card = styled.div`
     padding: 0;
   }
 
-  > table > tr {
+  > table > tbody > tr {
     width: 100%;
   }
 
-  > table > tr > td {
+  > table > tbody > tr > td {
     width: 50%;
 
     &:nth-child(2) {
@@ -75,3 +75,10 @@ const Card = styled.div`
     margin-bottom: 0;
   }
 `
+const Color = styled('div')(
+  ({ color }) => css`
+    width: 100%;
+    height: 60px;
+    background: ${color};
+  `
+)

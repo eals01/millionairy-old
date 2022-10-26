@@ -1,6 +1,11 @@
 import { useBox } from '@react-three/cannon'
+import { TextureLoader } from 'three/src/loaders/TextureLoader'
+import { useLoader } from '@react-three/fiber'
+import wood from './wood.jpg'
 
 export default function Table() {
+  const texture = useLoader(TextureLoader, wood)
+
   const [tableRef] = useBox(() => ({
     mass: 1,
     type: 'Static',
@@ -12,7 +17,7 @@ export default function Table() {
   return (
     <mesh ref={tableRef} receiveShadow>
       <boxGeometry args={[100, 2, 200]} />
-      <meshPhongMaterial attach='material' color='#806517' />
+      <meshStandardMaterial map={texture} />
     </mesh>
   )
 }

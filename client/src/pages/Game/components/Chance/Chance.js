@@ -11,7 +11,7 @@ export default function Chance({ height }) {
   }))
 
   return (
-    <mesh ref={chanceRef}>
+    <mesh castShadow ref={chanceRef}>
       <boxGeometry args={[8, 0.05, 5]} />
       <meshPhongMaterial attach='material' color='orange' />
     </mesh>

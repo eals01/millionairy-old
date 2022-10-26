@@ -12,12 +12,11 @@ import Fortune from './components/Fortune/Fortune'
 import Board from './components/Board/Board'
 import House from './components/House/House'
 import Table from './components/Table/Table'
-import Money from './components/Money/Money'
 
 import { Player } from '../../../../types/Player'
 import { Space } from '../../../../types/Space'
 import Chat, { ChatContainer } from '../../components/Chat'
-import Property from './components/PropertyCard/faces/Property'
+import Property from './components/PropertyCard/Property'
 import CardCollection from './components/CardCollection/CardCollection'
 
 export default function Game() {
@@ -86,6 +85,14 @@ export default function Game() {
     ]
   }
 
+  function calculateCurrencies(money: number) {
+    const fiveHundreds = Math.floor(money / 500)
+    const hundreds = Math.floor((money % 500) / 100)
+    const tens = Math.floor((money % 100) / 10)
+    const ones = Math.floor(money % 10)
+    return [ones, tens, hundreds, fiveHundreds]
+  }
+
   const player = players.find((player) => {
     return player.id === socket.id
   })
@@ -133,7 +140,10 @@ export default function Game() {
                 <span>
                   <b>{player.id.substring(0, 3)}</b>
                   <span style={{ marginLeft: '16px' }}>
-                    space: {player.currentSpace}
+                    space: {player.currentSpace},
+                  </span>
+                  <span style={{ marginLeft: '16px' }}>
+                    money: {player.money}
                   </span>
                 </span>
                 {player.id === socket.id && (
@@ -146,66 +156,89 @@ export default function Game() {
         </div>
       </div>
       <Canvas shadows camera={{ position: [100, 0, 0], fov: 60 }}>
-        <ambientLight intensity={0.2} />
+        <ambientLight intensity={0.25} />
         <spotLight
-          intensity={0.8}
+          intensity={0.6}
           angle={Math.PI / 4}
           penumbra={0.5}
-          position={[50, 100, 50]}
+          position={[0, 75, 150]}
           castShadow
           shadow-mapSize-height={2048}
           shadow-mapSize-width={2048}
         />
         <OrbitControls />
         <Physics allowSleep={true}>
-          <Debug>
-            {players.map((player) => {
-              return (
-                <Piece
-                  key={player.id}
-                  player={player}
-                  position={positionPiece(player)}
-                />
-              )
-            })}
-            {players.map((player) => {
-              return (
-                <CardCollection
-                  spaces={spaces.filter((space) => {
-                    return space.ownerID === player.id
-                  })}
-                  position={[29, -0.15, 22.5]}
-                />
-              )
-            })}
-            <House color='red' />
+          {players.map((player) => {
+            return (
+              <Piece
+                key={player.id}
+                player={player}
+                position={positionPiece(player)}
+              />
+            )
+          })}
+          {players.map((player, index) => {
+            const playerCards =
+              players.length === 2
+                ? [
+                    {
+                      position: [29, -0.15, 22.5],
+                      rotation: [0, Math.PI, 0],
+                    },
+                    {
+                      position: [-29, -0.15, -22.5],
+                      rotation: [0, 0, 0],
+                    },
+                  ]
+                : [
+                    {
+                      position: [29, -0.15, 22.5],
+                      rotation: [0, Math.PI, 0],
+                    },
+                    {
+                      position: [-22.5, -0.15, 29],
+                      rotation: [0, Math.PI / 2, 0],
+                    },
+                    {
+                      position: [-29, -0.15, -22.5],
+                      rotation: [0, 0, 0],
+                    },
+                    {
+                      position: [22.5, -0.15, -29],
+                      rotation: [0, -Math.PI / 2, 0],
+                    },
+                  ]
+            return (
+              <CardCollection
+                spaces={spaces.filter((space) => {
+                  return space.ownerID === player.id
+                })}
+                position={playerCards[index].position}
+                rotation={playerCards[index].rotation}
+                currencies={calculateCurrencies(player.money)}
+              />
+            )
+          })}
+          <House color='limegreen' />
 
-            <CardCollection
-              spaces={spaces.filter((space) => {
-                return space.ownerID === ''
-              })}
-              position={[0, -0.15, 70]}
-            />
-            {[...Array(4)].map((_, columnIndex) =>
-              [...Array(10)].map((_, index) => (
-                <Money
-                  key={columnIndex + index + 'm'}
-                  height={index}
-                  offsetZ={columnIndex * 6}
-                />
-              ))
-            )}
-            <Dice offset={0} active={isCurrentPlayer} />
-            <Dice offset={2} active={isCurrentPlayer} />
-            {[...Array(20)].map((__, index) => (
-              <Chance height={index / 4} key={`chance${index}`} />
-            ))}
-            {[...Array(20)].map((__, index) => (
-              <Fortune height={index / 4} key={`fortune${index}`} />
-            ))}
-            <Board />
-            <Table />
-          </Debug>
+          <CardCollection
+            spaces={spaces.filter((space) => {
+              return space.ownerID === ''
+            })}
+            position={[0, -0.15, 80]}
+            rotation={[0, Math.PI, 0]}
+            currencies={[0, 0, 0, 0]}
+          />
+          <Dice offset={0} active={isCurrentPlayer} />
+          <Dice offset={2} active={isCurrentPlayer} />
+          {[...Array(20)].map((__, index) => (
+            <Chance height={index / 4} key={`chance${index}`} />
+          ))}
+          {[...Array(20)].map((__, index) => (
+            <Fortune height={index / 4} key={`fortune${index}`} />
+          ))}
+          <Board />
+          <Table />
         </Physics>
       </Canvas>
     </GameContainer>

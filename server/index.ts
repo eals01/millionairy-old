@@ -49,7 +49,8 @@ io.on('connection', socket => {
     id: socket.id,
     color: '',
     currentSpace: 0,
-    ownedSpaces: []
+    ownedSpaces: [],
+    money: 1500
   }
 
   let lobby: Lobby | undefined = undefined
@@ -58,7 +59,7 @@ io.on('connection', socket => {
     const lobby = {
       code: createLobbyCode(),
       adminID: socket.id,
-      availableColors: ['red', 'blue', 'yellow', 'green'],
+      availableColors: ['indianred', 'deepskyblue', 'khaki', 'darkseagreen'],
       players: [],
       chat: [],
       diceState: [],
@@ -189,6 +190,7 @@ io.on('connection', socket => {
     const boughtSpace = lobby.spaces.find(otherSpace => space.id === otherSpace.id)
     if (!boughtSpace) return
     boughtSpace.ownerID = socket.id
+    player.money -= boughtSpace.price.buy
     io.to(lobby.code).emit('updateLobby', lobby)
   })
 
