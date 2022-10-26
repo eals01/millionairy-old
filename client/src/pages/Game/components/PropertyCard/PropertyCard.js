@@ -1,18 +1,14 @@
-import { useBox } from '@react-three/cannon'
+import * as THREE from 'three'
+import { useLoader } from '@react-three/fiber'
+import face from './faces/face1.png'
 
-export default function PropertyCard({ offsetX, offsetY, offsetZ }) {
-  const [chanceRef] = useBox(() => ({
-    mass: 1,
-    type: 'Dynamic',
-    args: [8, 0.05, 5],
-    position: [30 + offsetX, 1 + offsetY, 22.5 + offsetZ],
-    sleepSpeedLimit: 1,
-  }))
+export default function PropertyCard({ position }) {
+  const texture = useLoader(THREE.TextureLoader, face)
 
   return (
-    <mesh ref={chanceRef}>
-      <boxGeometry args={[8, 0.05, 5]} />
-      <meshPhongMaterial attach='material' color='white' />
+    <mesh position={position} rotation={[0, -Math.PI / 2, 0]}>
+      <boxGeometry args={[5, 0.05, 8]} />
+      <meshStandardMaterial map={texture} />
     </mesh>
   )
 }

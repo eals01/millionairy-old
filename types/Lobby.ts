@@ -1,5 +1,6 @@
 import { Player } from './Player'
 import { Message } from './Message'
+import { Space } from './Space'
 
 export type Lobby = {
   code: string
@@ -9,4 +10,5 @@ export type Lobby = {
   chat: Message[]
   diceState: number[]
   currentPlayerIndex: number
+  spaces: Space[]
 }

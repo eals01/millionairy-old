@@ -11,18 +11,19 @@ import Chance from './components/Chance/Chance'
 import Fortune from './components/Fortune/Fortune'
 import Board from './components/Board/Board'
 import House from './components/House/House'
-import PropertyCard from './components/PropertyCard/PropertyCard'
 import Table from './components/Table/Table'
 import Money from './components/Money/Money'
 
 import { Player } from '../../../../types/Player'
+import { Space } from '../../../../types/Space'
 import Chat, { ChatContainer } from '../../components/Chat'
-
-import SPACES from './components/Board/SPACES'
+import Property from './components/PropertyCard/faces/Property'
+import CardCollection from './components/CardCollection/CardCollection'
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
   const [players, setPlayers] = useState<Player[]>([])
+  const [spaces, setSpaces] = useState<Space[]>([])
   const [isCurrentPlayer, setIsCurrentPlayer] = useState(false)
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function Game() {
     socket.on('updateLobby', (lobby) => {
       setLoaded(true)
       setPlayers(lobby.players)
+      setSpaces(lobby.spaces)
       setIsCurrentPlayer(
         lobby.players[lobby.currentPlayerIndex].id === socket.id
       )
@@ -50,6 +52,11 @@ export default function Game() {
     socket.emit('emitDiceResult', 1)
   }
 
+  function buyProperty() {
+    if (!player) return
+    socket.emit('buyProperty', spaces[player.currentSpace])
+  }
+
   function positionPiece(player: Player) {
     let sharesSpaceWith = 0
     for (const otherPlayer of players) {
@@ -66,7 +73,7 @@ export default function Game() {
       }
     }
 
-    const boundaries = SPACES[player.currentSpace].boundaries
+    const boundaries = spaces[player.currentSpace].boundaries
     const boundaryWidth = boundaries.start[0] - boundaries.end[0]
     const boundaryHeight = boundaries.start[2] - boundaries.end[2]
 
@@ -79,10 +86,24 @@ export default function Game() {
     ]
   }
 
-  if (!loaded) return null
+  const player = players.find((player) => {
+    return player.id === socket.id
+  })
+
+  if (!loaded || !player) return null
   return (
     <GameContainer>
       <Chat />
+      <div
+        style={{
+          position: 'absolute',
+          zIndex: 1,
+          top: 20,
+          left: 20,
+        }}
+      >
+        <Property space={spaces[player.currentSpace]} />
+      </div>
       <div
         style={{
           position: 'absolute',
@@ -91,11 +112,13 @@ export default function Game() {
           right: 20,
           width: 400,
           height: 200,
-          background: 'rgba(255,255,255,0.5)',
+          background: 'white',
+          border: '1px solid black',
         }}
       >
         <button onClick={throwDice}>Throw dice</button>
         <button onClick={moveOne}>Move 1</button>
+        <button onClick={buyProperty}>Buy</button>
         <div>
           {players.map((player, index) => {
             return (
@@ -122,7 +145,7 @@ export default function Game() {
           <p>Your turn: {isCurrentPlayer.toString()}</p>
         </div>
       </div>
-      <Canvas shadows camera={{ position: [100, 0, 0], fov: 40 }}>
+      <Canvas shadows camera={{ position: [100, 0, 0], fov: 60 }}>
         <ambientLight intensity={0.2} />
         <spotLight
           intensity={0.8}
@@ -133,12 +156,7 @@ export default function Game() {
           shadow-mapSize-height={2048}
           shadow-mapSize-width={2048}
         />
-        <OrbitControls
-          minPolarAngle={Math.PI / 3}
-          maxPolarAngle={Math.PI / 3}
-          enableZoom={false}
-          enablePan={false}
-        />
+        <OrbitControls />
         <Physics allowSleep={true}>
           <Debug>
             {players.map((player) => {
@@ -150,18 +168,25 @@ export default function Game() {
                 />
               )
             })}
-            <House color='red' />
-            {[...Array(3)].map((__, columnIndex) =>
-              [...Array(3)].map((__, index) => (
-                <PropertyCard
-                  key={columnIndex + index + 'pc'}
-                  offsetX={index * 2}
-                  offsetY={index}
-                  offsetZ={columnIndex * -6}
+            {players.map((player) => {
+              return (
+                <CardCollection
+                  spaces={spaces.filter((space) => {
+                    return space.ownerID === player.id
+                  })}
+                  position={[29, -0.15, 22.5]}
                 />
-              ))
-            )}
-            {[...Array(3)].map((_, columnIndex) =>
+              )
+            })}
+            <House color='red' />
+
+            <CardCollection
+              spaces={spaces.filter((space) => {
+                return space.ownerID === ''
+              })}
+              position={[0, -0.15, 70]}
+            />
+            {[...Array(4)].map((_, columnIndex) =>
               [...Array(10)].map((_, index) => (
                 <Money
                   key={columnIndex + index + 'm'}
@@ -194,16 +219,7 @@ const GameContainer = styled.div`
   > ${ChatContainer} {
     z-index: 1;
     position: absolute;
-    right: 2em;
-    top: 2em;
+    right: 20px;
+    top: 20px;
   }
 `
-
-function Marker({ pos, color }: { pos: number[]; color: string }) {
-  return (
-    <mesh position={pos}>
-      <cylinderGeometry args={[0.1, 0.1, 10]} />
-      <meshPhysicalMaterial color={color} />
-    </mesh>
-  )
-}

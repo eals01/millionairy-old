@@ -3,6 +3,8 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { Player } from '../types/Player'
 import { Lobby } from '../types/Lobby'
+import SPACES from '../client/src/pages/Game/components/Board/SPACES'
+import deepClone from 'deep-clone'
 
 const app = express()
 const httpServer = createServer(app)
@@ -46,7 +48,8 @@ io.on('connection', socket => {
   let player: Player = {
     id: socket.id,
     color: '',
-    currentSpace: 0
+    currentSpace: 0,
+    ownedSpaces: []
   }
 
   let lobby: Lobby | undefined = undefined
@@ -59,7 +62,8 @@ io.on('connection', socket => {
       players: [],
       chat: [],
       diceState: [],
-      currentPlayerIndex: -1
+      currentPlayerIndex: -1,
+      spaces: deepClone(SPACES)
     }
     LOBBIES.push(lobby)
 
@@ -178,6 +182,14 @@ io.on('connection', socket => {
         }, timeUntilCheckingForNewResult)
       }
     }
+  })
+
+  socket.on('buyProperty', space => {
+    if (!lobby) return
+    const boughtSpace = lobby.spaces.find(otherSpace => space.id === otherSpace.id)
+    if (!boughtSpace) return
+    boughtSpace.ownerID = socket.id
+    io.to(lobby.code).emit('updateLobby', lobby)
   })
 
   socket.on('disconnect', () => {
