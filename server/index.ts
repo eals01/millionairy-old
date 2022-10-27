@@ -3,7 +3,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { Player } from '../types/Player'
 import { Lobby } from '../types/Lobby'
-import SPACES from '../client/src/pages/Game/components/Board/SPACES'
+import SPACES from './SPACES'
 import deepClone from 'deep-clone'
 
 const app = express()
@@ -38,8 +38,33 @@ function createLobbyCode() {
   return result
 }
 
-function movePlayer(player: Player, amount: number) {
+function movePlayer(lobby: Lobby, player: Player, amount: number) {
+  const originalSpace = player.currentSpace
   player.currentSpace = (player.currentSpace + amount) % SPACE_COUNT
+
+  const passedStart = player.currentSpace < originalSpace
+  if (passedStart) {
+    player.money += 200
+  }
+
+  const space = lobby.spaces[player.currentSpace]
+  if (space.type === 'chance') {
+  } else if (space.type === 'start') {
+    player.money += 400
+  } else if (space.type === 'goToJail') {
+    player.currentSpace = 10
+    // gå til fengsel logikk her
+  } else if (space.type === 'wheel') {
+  } else if (space.type === 'tax') {
+    player.money -= space.price.tax
+  } else if (['property', 'transport', 'utility'].includes(space.type)) {
+    if (space.ownerID !== '') {
+      const ownerOfSpace = lobby.players.find(player => player.id === space.ownerID)
+      if (!ownerOfSpace) return
+      player.money -= space.price.parking[space.houseCount]
+      ownerOfSpace.money += space.price.parking[space.houseCount]
+    }
+  }
 }
 
 io.on('connection', socket => {
@@ -170,17 +195,14 @@ io.on('connection', socket => {
         )
 
         movePlayer(
+          lobby,
           lobby.players[lobby.currentPlayerIndex],
           lobby.diceState.reduce((a, b) => a + b, 0)
         )
+
         lobby.diceState = []
-        const timeUntilCheckingForNewResult = 500
-        setTimeout(() => {
-          if (lobby) {
-            lobby.currentPlayerIndex = (lobby.currentPlayerIndex + 1) % lobby.players.length
-            io.to(lobby.code).emit('updateLobby', lobby)
-          }
-        }, timeUntilCheckingForNewResult)
+        io.to(lobby.code).emit('updateLobby', lobby)
+        io.to(socket.id).emit('turnEndable')
       }
     }
   })
@@ -189,8 +211,15 @@ io.on('connection', socket => {
     if (!lobby) return
     const boughtSpace = lobby.spaces.find(otherSpace => space.id === otherSpace.id)
     if (!boughtSpace) return
+    if (boughtSpace.price.buy > player.money) return
     boughtSpace.ownerID = socket.id
     player.money -= boughtSpace.price.buy
+    io.to(lobby.code).emit('updateLobby', lobby)
+  })
+
+  socket.on('endTurn', () => {
+    if (!lobby) return
+    lobby.currentPlayerIndex = (lobby.currentPlayerIndex + 1) % lobby.players.length
     io.to(lobby.code).emit('updateLobby', lobby)
   })
 

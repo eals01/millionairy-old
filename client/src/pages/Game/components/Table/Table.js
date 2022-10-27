@@ -15,9 +15,27 @@ export default function Table() {
   }))
 
   return (
-    <mesh ref={tableRef} receiveShadow>
-      <boxGeometry args={[100, 2, 200]} />
-      <meshStandardMaterial map={texture} />
-    </mesh>
+    <group>
+      <mesh ref={tableRef} receiveShadow>
+        <boxGeometry args={[100, 2, 200]} />
+        <meshPhysicalMaterial color='#C6A27E' />
+      </mesh>
+      <mesh position={[-40, -32.3, -74]}>
+        <boxGeometry args={[6, 60, 6]} />
+        <meshPhysicalMaterial color='#C6A27E' />
+      </mesh>
+      <mesh position={[40, -32.3, -74]}>
+        <boxGeometry args={[6, 60, 6]} />
+        <meshPhysicalMaterial color='#C6A27E' />
+      </mesh>
+      <mesh position={[-40, -32.3, 74]}>
+        <boxGeometry args={[6, 60, 6]} />
+        <meshPhysicalMaterial color='#C6A27E' />
+      </mesh>
+      <mesh position={[40, -32.3, 74]}>
+        <boxGeometry args={[6, 60, 6]} />
+        <meshPhysicalMaterial color='#C6A27E' />
+      </mesh>
+    </group>
   )
 }

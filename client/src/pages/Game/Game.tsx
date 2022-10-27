@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Canvas } from '@react-three/fiber'
-import { Physics, Debug } from '@react-three/cannon'
+import { Physics } from '@react-three/cannon'
 import { OrbitControls } from '@react-three/drei'
 import socket from '../../socket'
 
@@ -24,6 +24,7 @@ export default function Game() {
   const [players, setPlayers] = useState<Player[]>([])
   const [spaces, setSpaces] = useState<Space[]>([])
   const [isCurrentPlayer, setIsCurrentPlayer] = useState(false)
+  const [turnEndable, setTurnEndable] = useState(false)
 
   useEffect(() => {
     socket.emit('gamePageEntered')
@@ -37,8 +38,13 @@ export default function Game() {
       )
     })
 
+    socket.on('turnEndable', () => {
+      setTurnEndable(true)
+    })
+
     return () => {
       socket.off('updateLobby')
+      socket.off('turnEndable')
     }
   }, [])
 
@@ -54,6 +60,11 @@ export default function Game() {
   function buyProperty() {
     if (!player) return
     socket.emit('buyProperty', spaces[player.currentSpace])
+  }
+
+  function endTurn() {
+    setTurnEndable(false)
+    socket.emit('endTurn')
   }
 
   function positionPiece(player: Player) {
@@ -123,9 +134,25 @@ export default function Game() {
           border: '1px solid black',
         }}
       >
-        <button onClick={throwDice}>Throw dice</button>
-        <button onClick={moveOne}>Move 1</button>
-        <button onClick={buyProperty}>Buy</button>
+        {isCurrentPlayer && !turnEndable && (
+          <>
+            <button onClick={throwDice}>Throw dice</button>
+            <button onClick={moveOne}>Move 1</button>
+          </>
+        )}
+
+        {turnEndable && (
+          <>
+            {turnEndable &&
+              ['property', 'transport', 'utility'].includes(
+                spaces[player.currentSpace].type
+              ) &&
+              spaces[player.currentSpace].ownerID === '' && (
+                <button onClick={buyProperty}>Buy</button>
+              )}
+            <button onClick={endTurn}>End turn</button>
+          </>
+        )}
         <div>
           {players.map((player, index) => {
             return (
@@ -161,7 +188,7 @@ export default function Game() {
           intensity={0.6}
           angle={Math.PI / 4}
           penumbra={0.5}
-          position={[0, 75, 150]}
+          position={[50, 75, 150]}
           castShadow
           shadow-mapSize-height={2048}
           shadow-mapSize-width={2048}
@@ -229,8 +256,8 @@ export default function Game() {
             rotation={[0, Math.PI, 0]}
             currencies={[0, 0, 0, 0]}
           />
-          <Dice offset={0} active={isCurrentPlayer} />
-          <Dice offset={2} active={isCurrentPlayer} />
+          <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
+          <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
           {[...Array(20)].map((__, index) => (
             <Chance height={index / 4} key={`chance${index}`} />
           ))}
