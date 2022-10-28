@@ -3,8 +3,10 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { Player } from '../types/Player'
 import { Lobby } from '../types/Lobby'
-import SPACES from './SPACES'
+import SPACES from './defaultValues/SPACES'
+import CHANCECARDS from './defaultValues/CHANCECARDS'
 import deepClone from 'deep-clone'
+import { ChanceCard } from '../types/ChanceCard'
 
 const app = express()
 const httpServer = createServer(app)
@@ -48,22 +50,56 @@ function movePlayer(lobby: Lobby, player: Player, amount: number) {
   }
 
   const space = lobby.spaces[player.currentSpace]
-  if (space.type === 'chance') {
+  if (space.type === 'chance' || space.type === 'wheel') {
+    const card = drawChanceCard(lobby)
+    doChanceAction(card, player)
+    io.to(lobby.code).emit('drawChanceCard', card)
+
   } else if (space.type === 'start') {
     player.money += 400
+
   } else if (space.type === 'goToJail') {
     player.currentSpace = 10
     // gå til fengsel logikk her
-  } else if (space.type === 'wheel') {
-  } else if (space.type === 'tax') {
+
+  } /*else if (space.type === 'wheel') {
+  }*/ else if (space.type === 'tax') {
     player.money -= space.price.tax
+
   } else if (['property', 'transport', 'utility'].includes(space.type)) {
-    if (space.ownerID !== '') {
+    if (space.ownerID !== '' && space.ownerID !== player.id) {
       const ownerOfSpace = lobby.players.find(player => player.id === space.ownerID)
       if (!ownerOfSpace) return
       player.money -= space.price.parking[space.houseCount]
       ownerOfSpace.money += space.price.parking[space.houseCount]
     }
+  }
+
+  io.to(lobby.code).emit('updateLobby', lobby)
+  io.to(player.id).emit('turnEndable')
+}
+
+function shuffleCards(cards: ChanceCard[] ) {
+  return cards.sort(() => Math.random() - 0.5)
+}
+
+function drawChanceCard(lobby: Lobby): ChanceCard {
+  console.log('drawing from stack of ', lobby.chanceCards.length, 'cards')
+  if(lobby.chanceCards.length === 0) {
+    console.log('reshuffling')
+    lobby.chanceCards = shuffleCards(deepClone(CHANCECARDS))
+  }
+  return lobby.chanceCards.pop()!
+}
+
+function doChanceAction(card: ChanceCard, player: Player) {
+  switch(card.action.type) {
+    case 'receive':
+      player.money += card.action.value
+      break
+    case 'lose':
+      player.money -= card.action.value
+      break
   }
 }
 
@@ -89,7 +125,8 @@ io.on('connection', socket => {
       chat: [],
       diceState: [],
       currentPlayerIndex: -1,
-      spaces: deepClone(SPACES)
+      spaces: deepClone(SPACES),
+      chanceCards: shuffleCards(deepClone(CHANCECARDS))
     }
     LOBBIES.push(lobby)
 
@@ -201,8 +238,6 @@ io.on('connection', socket => {
         )
 
         lobby.diceState = []
-        io.to(lobby.code).emit('updateLobby', lobby)
-        io.to(socket.id).emit('turnEndable')
       }
     }
   })
@@ -215,6 +250,11 @@ io.on('connection', socket => {
     boughtSpace.ownerID = socket.id
     player.money -= boughtSpace.price.buy
     io.to(lobby.code).emit('updateLobby', lobby)
+  })
+
+  socket.on('dismissChanceCard', () => {
+    if(!lobby) return
+    io.to(lobby.code).emit('dismissChanceCard')
   })
 
   socket.on('endTurn', () => {

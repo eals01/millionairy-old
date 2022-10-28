@@ -1,4 +1,4 @@
-import { Space } from '../types/Space'
+import { Space } from '../../types/Space'
 
 const SPACES: Space[] = [
   {

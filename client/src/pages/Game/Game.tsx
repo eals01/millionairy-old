@@ -18,6 +18,7 @@ import { Space } from '../../../../types/Space'
 import Chat, { ChatContainer } from '../../components/Chat'
 import Property from './components/PropertyCard/Property'
 import CardCollection from './components/CardCollection/CardCollection'
+import ChanceCard from './components/Chance/ChanceCard'
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
@@ -54,6 +55,11 @@ export default function Game() {
 
   function moveOne() {
     socket.emit('emitDiceResult', 0)
+    socket.emit('emitDiceResult', 1)
+  }
+
+  function moveTwo() {
+    socket.emit('emitDiceResult', 1)
     socket.emit('emitDiceResult', 1)
   }
 
@@ -138,6 +144,7 @@ export default function Game() {
           <>
             <button onClick={throwDice}>Throw dice</button>
             <button onClick={moveOne}>Move 1</button>
+            <button onClick={moveTwo}>Move 2</button>
           </>
         )}
 
@@ -182,6 +189,7 @@ export default function Game() {
           <p>Your turn: {isCurrentPlayer.toString()}</p>
         </div>
       </div>
+      <ChanceCard currentPlayer={isCurrentPlayer} />
       <Canvas shadows camera={{ position: [100, 0, 0], fov: 60 }}>
         <ambientLight intensity={0.25} />
         <spotLight

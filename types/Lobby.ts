@@ -1,6 +1,7 @@
 import { Player } from './Player'
 import { Message } from './Message'
 import { Space } from './Space'
+import { ChanceCard } from './ChanceCard'
 
 export type Lobby = {
   code: string
@@ -11,4 +12,5 @@ export type Lobby = {
   diceState: number[]
   currentPlayerIndex: number
   spaces: Space[]
+  chanceCards: ChanceCard[]
 }
