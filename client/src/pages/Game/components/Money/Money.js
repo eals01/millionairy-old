@@ -9,5 +9,16 @@ export default function Chance({ height, offsetZ, color, face }) {
       <boxGeometry args={[10, 0.05, 5]} />
       <meshStandardMaterial map={texture} />
     </mesh>
+    {[...Array(4)].map((_, columnIndex) =>
+        [...Array(currencies[columnIndex])].map((_, index) => (
+          <Money
+            key={columnIndex + index + 'm'}
+            height={index * 1}
+            offsetZ={columnIndex * 6}
+            color={moneyColors[columnIndex]}
+            face={textures[columnIndex]}
+          />
+        ))
+      )}
   )
 }

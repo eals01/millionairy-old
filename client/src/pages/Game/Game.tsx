@@ -8,7 +8,6 @@ import socket from '../../socket'
 import Piece from './components/Piece/Piece'
 import Dice from './components/Dice/Dice'
 import Chance from './components/Chance/Chance'
-import Fortune from './components/Fortune/Fortune'
 import Board from './components/Board/Board'
 import House from './components/House/House'
 import Table from './components/Table/Table'
@@ -19,7 +18,6 @@ import Chat, { ChatContainer } from '../../components/Chat'
 import Property from './components/PropertyCard/Property'
 import CardCollection from './components/CardCollection/CardCollection'
 import ChanceCard from './components/Chance/ChanceCard'
-import Trade from '../../components/Trade'
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
@@ -74,35 +72,6 @@ export default function Game() {
   function endTurn() {
     setTurnEndable(false)
     socket.emit('endTurn')
-  }
-
-  function positionPiece(player: Player) {
-    let sharesSpaceWith = 0
-    for (const otherPlayer of players) {
-      if (player.currentSpace == otherPlayer.currentSpace) {
-        sharesSpaceWith++
-      }
-    }
-
-    let playerNumberOnSpace = 0
-    for (const otherPlayer of players) {
-      if (player === otherPlayer) break
-      if (player.currentSpace == otherPlayer.currentSpace) {
-        playerNumberOnSpace++
-      }
-    }
-
-    const boundaries = spaces[player.currentSpace].boundaries
-    const boundaryWidth = boundaries.start[0] - boundaries.end[0]
-    const boundaryHeight = boundaries.start[2] - boundaries.end[2]
-
-    return [
-      boundaries.start[0] -
-        (boundaryWidth / (sharesSpaceWith + 1)) * (playerNumberOnSpace + 1),
-      1,
-      boundaries.start[2] -
-        (boundaryHeight / (sharesSpaceWith + 1)) * (playerNumberOnSpace + 1),
-    ]
   }
 
   function calculateCurrencies(money: number) {
@@ -193,7 +162,6 @@ export default function Game() {
         </div>
       </div>
       <ChanceCard currentPlayer={isCurrentPlayer} />
-      {/*<Trade />*/}
       <Canvas shadows camera={{ position: [100, 0, 0], fov: 60 }}>
         <ambientLight intensity={0.25} />
         <spotLight
@@ -212,11 +180,12 @@ export default function Game() {
               <Piece
                 key={player.id}
                 player={player}
-                position={positionPiece(player)}
+                players={players}
+                spaces={spaces}
               />
             )
           })}
-          {players.map((player, index) => {
+          {/*players.map((player, index) => {
             const playerCards =
               players.length === 2
                 ? [
@@ -255,27 +224,22 @@ export default function Game() {
                 position={playerCards[index].position}
                 rotation={playerCards[index].rotation}
                 currencies={calculateCurrencies(player.money)}
+                players={players}
               />
             )
-          })}
+          })*/}
           <House color='limegreen' />
 
           <CardCollection
-            spaces={spaces.filter((space) => {
-              return space.ownerID === ''
-            })}
-            position={[0, -0.15, 80]}
-            rotation={[0, Math.PI, 0]}
+            spaces={spaces}
             currencies={[0, 0, 0, 0]}
+            players={players}
           />
           <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
           <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
           {[...Array(chanceCardCount)].map((__, index) => (
             <Chance height={index / 4} key={`chance${index}`} />
           ))}
-          {/*[...Array(20)].map((__, index) => (
-            <Fortune height={index / 4} key={`fortune${index}`} />
-          ))*/}
           <Board />
           <Table />
         </Physics>
