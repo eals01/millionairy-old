@@ -56,7 +56,7 @@ export default function Model({ offset, active }) {
   }, [])
 
   function throwDice() {
-    if (active) {
+    if (active && !checkingForResult) {
       socket.emit('throwDice')
     }
   }

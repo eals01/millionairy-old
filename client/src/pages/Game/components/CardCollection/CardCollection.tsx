@@ -3,48 +3,124 @@ import Money from '../Money/Money'
 import PropertyCard from '../PropertyCard/PropertyCard'
 import faces from '../PropertyCard/faces/faces'
 import textures from '../Money/faces/faces'
+import { Player } from '../../../../../../types/Player'
 
 export default function CardCollection({
   spaces,
-  position,
-  rotation,
   currencies,
+  players,
 }: {
   spaces: Space[]
-  position: number[]
-  rotation: number[]
   currencies: number[]
+  players: Player[]
 }) {
   const moneyColors = ['lightgreen', 'yellow', 'orange', 'teal']
 
   return (
-    <group position={position} rotation={rotation}>
+    <group>
       {spaces.map((space) => {
         if (space.column > -1) {
-          return (
-            <PropertyCard
-              key={'space' + space.id}
-              position={[
-                -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
-                space.streetNumber / 20,
-                (space.column % 5) * 5.2,
-              ]}
-              face={faces[space.propertyNumber]}
-            />
-          )
+          const playerPositions =
+            players.length === 2
+              ? [
+                  {
+                    player: players[0],
+                    position: [29, -0.15, 22.5],
+                    rotation: [0, Math.PI, 0],
+                    offset: [
+                      space.streetNumber * 1 + (space.column < 5 ? 0 : 10.5),
+                      space.streetNumber / 20,
+                      -(space.column % 5) * 5.2,
+                    ],
+                  },
+                  {
+                    player: players[1],
+                    position: [-29, -0.15, -22.5],
+                    rotation: [0, 0, 0],
+                    offset: [
+                      -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
+                      space.streetNumber / 20,
+                      (space.column % 5) * 5.2,
+                    ],
+                  },
+                ]
+              : [
+                  {
+                    player: players[0],
+                    position: [29, -0.15, 22.5],
+                    rotation: [0, Math.PI, 0],
+                    offset: [
+                      space.streetNumber * 1 + (space.column < 5 ? 0 : 10.5),
+                      space.streetNumber / 20,
+                      -(space.column % 5) * 5.2,
+                    ],
+                  },
+                  {
+                    player: players[1],
+                    position: [-22.5, -0.15, 29],
+                    rotation: [0, Math.PI / 2, 0],
+                    offset: [
+                      (space.column % 5) * 5.2,
+                      space.streetNumber / 20,
+                      space.streetNumber * 1 + (space.column < 5 ? 0 : 10.5),
+                    ],
+                  },
+                  {
+                    player: players[2],
+                    position: [-29, -0.15, -22.5],
+                    rotation: [0, 0, 0],
+                    offset: [
+                      -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
+                      space.streetNumber / 20,
+                      (space.column % 5) * 5.2,
+                    ],
+                  },
+                  {
+                    player: players[3],
+                    position: [22.5, -0.15, -29],
+                    rotation: [0, -Math.PI / 2, 0],
+                    offset: [
+                      -(space.column % 5) * 5.2,
+                      space.streetNumber / 20,
+                      -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
+                    ],
+                  },
+                ]
+
+          if (space.ownerID !== '') {
+            const playerPosition = playerPositions.find(
+              (playerPosition) => playerPosition.player.id === space.ownerID
+            )
+            if (!playerPosition) return
+            console.log(space.name, playerPosition)
+            return (
+              <PropertyCard
+                key={'space' + space.id}
+                position={[
+                  playerPosition.position[0] + playerPosition.offset[0],
+                  -0.15 + playerPosition.offset[1],
+                  playerPosition.position[2] + playerPosition.offset[2],
+                ]}
+                rotation={[0, -Math.PI / 2 + playerPosition.rotation[1], 0]}
+                face={faces[space.propertyNumber]}
+              />
+            )
+          } else {
+            return (
+              <PropertyCard
+                key={'space' + space.id}
+                position={[
+                  -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
+                  space.streetNumber / 20,
+                  (space.column % 5) * 5.2 + 50,
+                ]}
+                rotation={[0, -Math.PI / 2, 0]}
+                face={faces[space.propertyNumber]}
+              />
+            )
+          }
         }
       })}
-      {[...Array(4)].map((_, columnIndex) =>
-        [...Array(currencies[columnIndex])].map((_, index) => (
-          <Money
-            key={columnIndex + index + 'm'}
-            height={index * 1}
-            offsetZ={columnIndex * 6}
-            color={moneyColors[columnIndex]}
-            face={textures[columnIndex]}
-          />
-        ))
-      )}
     </group>
   )
 }
