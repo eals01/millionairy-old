@@ -84,7 +84,6 @@ function shuffleCards(cards: ChanceCard[] ) {
 }
 
 function drawChanceCard(lobby: Lobby): ChanceCard {
-  console.log('drawing from stack of ', lobby.chanceCards.length, 'cards')
   if(lobby.chanceCards.length === 0) {
     console.log('reshuffling')
     lobby.chanceCards = shuffleCards(deepClone(CHANCECARDS))
@@ -100,11 +99,18 @@ function doChanceAction(card: ChanceCard, player: Player) {
     case 'lose':
       player.money -= card.action.value
       break
+    case 'move':
+      const previousSpace = player.currentSpace
+      player.currentSpace = card.action.value
+      if(player.currentSpace < previousSpace) {
+        player.money += 200
+      }
   }
 }
 
 io.on('connection', socket => {
   console.log(socket.id.substring(0, 3) + ' connected')
+   io.to(socket.id).emit('navigateHome')
 
   let player: Player = {
     id: socket.id,

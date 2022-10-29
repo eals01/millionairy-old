@@ -19,6 +19,7 @@ import Chat, { ChatContainer } from '../../components/Chat'
 import Property from './components/PropertyCard/Property'
 import CardCollection from './components/CardCollection/CardCollection'
 import ChanceCard from './components/Chance/ChanceCard'
+import Trade from '../../components/Trade'
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
@@ -26,6 +27,7 @@ export default function Game() {
   const [spaces, setSpaces] = useState<Space[]>([])
   const [isCurrentPlayer, setIsCurrentPlayer] = useState(false)
   const [turnEndable, setTurnEndable] = useState(false)
+  const [chanceCardCount, setChanceCardCount] = useState(0)
 
   useEffect(() => {
     socket.emit('gamePageEntered')
@@ -37,6 +39,7 @@ export default function Game() {
       setIsCurrentPlayer(
         lobby.players[lobby.currentPlayerIndex].id === socket.id
       )
+      setChanceCardCount(lobby.chanceCards.length)
     })
 
     socket.on('turnEndable', () => {
@@ -190,6 +193,7 @@ export default function Game() {
         </div>
       </div>
       <ChanceCard currentPlayer={isCurrentPlayer} />
+      {/*<Trade />*/}
       <Canvas shadows camera={{ position: [100, 0, 0], fov: 60 }}>
         <ambientLight intensity={0.25} />
         <spotLight
@@ -201,7 +205,7 @@ export default function Game() {
           shadow-mapSize-height={2048}
           shadow-mapSize-width={2048}
         />
-        <OrbitControls />
+        <OrbitControls maxPolarAngle={Math.PI / 2.5} />
         <Physics allowSleep={true}>
           {players.map((player) => {
             return (
@@ -266,12 +270,12 @@ export default function Game() {
           />
           <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
           <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
-          {[...Array(20)].map((__, index) => (
+          {[...Array(chanceCardCount)].map((__, index) => (
             <Chance height={index / 4} key={`chance${index}`} />
           ))}
-          {[...Array(20)].map((__, index) => (
+          {/*[...Array(20)].map((__, index) => (
             <Fortune height={index / 4} key={`fortune${index}`} />
-          ))}
+          ))*/}
           <Board />
           <Table />
         </Physics>

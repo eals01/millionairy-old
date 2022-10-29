@@ -39,6 +39,7 @@ export default function ChanceCard({
   return (
     <ChanceCardContainer>
       <div>
+        <span>?</span>
         <h3>Chance</h3>
         <p>{text}</p>
         {currentPlayer && <button onClick={dismiss}>Dismiss</button>}
@@ -57,11 +58,20 @@ const ChanceCardContainer = styled.div`
   align-items: center;
 
   > div {
+    z-index: -2;
     background: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 1em;
+    overflow: hidden;
+
+    > span {
+      position: absolute;
+      z-index: -1;
+      font-size: 100px;
+      color: pink;
+    }
   }
 `
