@@ -18,6 +18,7 @@ import Chat, { ChatContainer } from '../../components/Chat'
 import Property from './components/PropertyCard/Property'
 import CardCollection from './components/CardCollection/CardCollection'
 import ChanceCard from './components/Chance/ChanceCard'
+import MoneyCollection from './components/MoneyCollection.tsx/MoneyCollection'
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
@@ -26,6 +27,9 @@ export default function Game() {
   const [isCurrentPlayer, setIsCurrentPlayer] = useState(false)
   const [turnEndable, setTurnEndable] = useState(false)
   const [chanceCardCount, setChanceCardCount] = useState(0)
+  const [bank, setBank] = useState<{ value: string; ownerIndex: number }[][]>(
+    []
+  )
 
   useEffect(() => {
     socket.emit('gamePageEntered')
@@ -38,6 +42,7 @@ export default function Game() {
         lobby.players[lobby.currentPlayerIndex].id === socket.id
       )
       setChanceCardCount(lobby.chanceCards.length)
+      setBank(lobby.bank)
     })
 
     socket.on('turnEndable', () => {
@@ -72,14 +77,6 @@ export default function Game() {
   function endTurn() {
     setTurnEndable(false)
     socket.emit('endTurn')
-  }
-
-  function calculateCurrencies(money: number) {
-    const fiveHundreds = Math.floor(money / 500)
-    const hundreds = Math.floor((money % 500) / 100)
-    const tens = Math.floor((money % 100) / 10)
-    const ones = Math.floor(money % 10)
-    return [ones, tens, hundreds, fiveHundreds]
   }
 
   const player = players.find((player) => {
@@ -185,56 +182,9 @@ export default function Game() {
               />
             )
           })}
-          {/*players.map((player, index) => {
-            const playerCards =
-              players.length === 2
-                ? [
-                    {
-                      position: [29, -0.15, 22.5],
-                      rotation: [0, Math.PI, 0],
-                    },
-                    {
-                      position: [-29, -0.15, -22.5],
-                      rotation: [0, 0, 0],
-                    },
-                  ]
-                : [
-                    {
-                      position: [29, -0.15, 22.5],
-                      rotation: [0, Math.PI, 0],
-                    },
-                    {
-                      position: [-22.5, -0.15, 29],
-                      rotation: [0, Math.PI / 2, 0],
-                    },
-                    {
-                      position: [-29, -0.15, -22.5],
-                      rotation: [0, 0, 0],
-                    },
-                    {
-                      position: [22.5, -0.15, -29],
-                      rotation: [0, -Math.PI / 2, 0],
-                    },
-                  ]
-            return (
-              <CardCollection
-                spaces={spaces.filter((space) => {
-                  return space.ownerID === player.id
-                })}
-                position={playerCards[index].position}
-                rotation={playerCards[index].rotation}
-                currencies={calculateCurrencies(player.money)}
-                players={players}
-              />
-            )
-          })*/}
           <House color='limegreen' />
-
-          <CardCollection
-            spaces={spaces}
-            currencies={[0, 0, 0, 0]}
-            players={players}
-          />
+          <CardCollection spaces={spaces} players={players} />
+          <MoneyCollection bank={bank} players={players} />
           <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
           <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
           {[...Array(chanceCardCount)].map((__, index) => (

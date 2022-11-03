@@ -1,21 +1,15 @@
 import { Space } from '../../../../../../types/Space'
-import Money from '../Money/Money'
 import PropertyCard from '../PropertyCard/PropertyCard'
 import faces from '../PropertyCard/faces/faces'
-import textures from '../Money/faces/faces'
 import { Player } from '../../../../../../types/Player'
 
 export default function CardCollection({
   spaces,
-  currencies,
   players,
 }: {
   spaces: Space[]
-  currencies: number[]
   players: Player[]
 }) {
-  const moneyColors = ['lightgreen', 'yellow', 'orange', 'teal']
-
   return (
     <group>
       {spaces.map((space) => {
@@ -110,11 +104,11 @@ export default function CardCollection({
               <PropertyCard
                 key={'space' + space.id}
                 position={[
-                  -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
-                  space.streetNumber / 20,
-                  (space.column % 5) * 5.2 + 50,
+                  -5,
+                  4,
+                  -space.column * 1.5 + 50 - space.streetNumber / 4,
                 ]}
-                rotation={[0, -Math.PI / 2, 0]}
+                rotation={[Math.PI / 1.3, Math.PI, 0]}
                 face={faces[space.propertyNumber]}
               />
             )

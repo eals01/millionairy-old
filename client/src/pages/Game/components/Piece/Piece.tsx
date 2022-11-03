@@ -1,43 +1,58 @@
 import { motion } from 'framer-motion-3d'
 import { useEffect, useState } from 'react'
+import { Player } from '../../../../../../types/Player'
+import { Space } from '../../../../../../types/Space'
 import socket from '../../../../socket'
 
-export default function Piece({ player, players, spaces }) {
+export default function Piece({
+  player,
+  players,
+  spaces,
+}: {
+  player: Player
+  players: Player[]
+  spaces: Space[]
+}) {
   const [previousSpace, setPreviousSpace] = useState(0)
-  const [keyFrames, setKeyFrames] = useState([
+  const [keyFrames, setKeyFrames] = useState<(number | null)[][]>([
     [positionPiece(0)[0]],
     [1],
     [positionPiece(0)[2]],
   ])
   const [duration, setDuration] = useState(1)
 
-  function positionPiece(spaceNumber) {
-    let sharesSpaceWith = spaceNumber === player.currentSpace ? 0 : 1
+  function positionPiece(spaceNumber: number) {
+    let countOfOtherPlayersOnSpace = 0
     for (const otherPlayer of players) {
-      if (spaceNumber == otherPlayer.currentSpace) {
-        sharesSpaceWith++
+      if (spaceNumber == otherPlayer.currentSpace && otherPlayer !== player) {
+        countOfOtherPlayersOnSpace++
       }
     }
-    if (sharesSpaceWith > 1) sharesSpaceWith++
 
-    let playerNumberOnSpace = 0
+    let playersNumberOnSpace = 0
     for (const otherPlayer of players) {
       if (player === otherPlayer) break
-      if (spaceNumber == otherPlayer.currentSpace) {
-        playerNumberOnSpace++
-      }
+      playersNumberOnSpace++
     }
 
     const boundaries = spaces[spaceNumber].boundaries
     const boundaryWidth = boundaries.start[0] - boundaries.end[0]
     const boundaryHeight = boundaries.start[2] - boundaries.end[2]
 
+    console.log(
+      player.id.substring(0, 3),
+      spaces[spaceNumber].name,
+      countOfOtherPlayersOnSpace,
+      playersNumberOnSpace
+    )
     return [
       boundaries.start[0] -
-        (boundaryWidth / (sharesSpaceWith + 1)) * (playerNumberOnSpace + 1),
+        (boundaryWidth / (countOfOtherPlayersOnSpace + 2)) *
+          (playersNumberOnSpace + 1),
       1,
       boundaries.start[2] -
-        (boundaryHeight / (sharesSpaceWith + 1)) * (playerNumberOnSpace + 1),
+        (boundaryHeight / (countOfOtherPlayersOnSpace + 2)) *
+          (playersNumberOnSpace + 1),
     ]
   }
 
@@ -47,22 +62,23 @@ export default function Piece({ player, players, spaces }) {
         player.currentSpace > previousSpace
           ? player.currentSpace - previousSpace
           : Math.abs(previousSpace - 40) + player.currentSpace
-      let keyFrames = [[], [], []]
-      keyFrames[1].push(positionPiece(player.currentSpace)[0] / 10000 + 1)
+      let keyFrames: (number | null)[][] = [[], [], []]
+      keyFrames[1].push(Math.random() / 100 + 1)
       for (
         let spaceNumber = previousSpace;
         spaceNumber % 40 != player.currentSpace + 1;
         spaceNumber++
       ) {
-        keyFrames[0].push(positionPiece(spaceNumber % 40)[0])
+        const intermediateSpacePosition = positionPiece(spaceNumber % 40)
+        keyFrames[0].push(intermediateSpacePosition[0])
         keyFrames[1].push(3, 1)
-        keyFrames[2].push(positionPiece(spaceNumber % 40)[2])
+        keyFrames[2].push(intermediateSpacePosition[2])
       }
-      keyFrames[1].pop()
-      keyFrames[1].pop()
+      keyFrames[0][0] = null
+      keyFrames[2][0] = null
+      keyFrames[1].splice(keyFrames.length - 2, 2)
       setDuration(gap / 2)
       setKeyFrames(keyFrames)
-      console.log(keyFrames)
     }
 
     setPreviousSpace(player.currentSpace)

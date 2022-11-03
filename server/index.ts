@@ -46,7 +46,7 @@ function movePlayer(lobby: Lobby, player: Player, amount: number) {
 
   const passedStart = player.currentSpace < originalSpace;
   if (passedStart) {
-    player.money += 200;
+    payPlayer(lobby, player, 200);
   }
 
   io.to(lobby.code).emit("updateLobby", lobby);
@@ -56,24 +56,24 @@ function performSpaceAction(lobby: Lobby, player: Player) {
   const space = lobby.spaces[player.currentSpace];
   if (space.type === "chance" || space.type === "wheel") {
     const card = drawChanceCard(lobby);
-    doChanceAction(card, player);
+    doChanceAction(lobby, card, player);
     io.to(lobby.code).emit("drawChanceCard", card);
   } else if (space.type === "start") {
-    player.money += 400;
+    payPlayer(lobby, player, 400);
   } else if (space.type === "goToJail") {
     player.currentSpace = 10;
     // gå til fengsel logikk her
   } /*else if (space.type === 'wheel') {
     }*/ else if (space.type === "tax") {
-    player.money -= space.price.tax;
+    reducePlayerBalance(lobby, player, space.price.tax);
   } else if (["property", "transport", "utility"].includes(space.type)) {
     if (space.ownerID !== "" && space.ownerID !== player.id) {
       const ownerOfSpace = lobby.players.find(
         (player) => player.id === space.ownerID
       );
       if (!ownerOfSpace) return;
-      player.money -= space.price.parking[space.houseCount];
-      ownerOfSpace.money += space.price.parking[space.houseCount];
+      // player.money -= space.price.parking[space.houseCount];
+      // ownerOfSpace.money += space.price.parking[space.houseCount];
     }
   }
 }
@@ -84,26 +84,156 @@ function shuffleCards(cards: ChanceCard[]) {
 
 function drawChanceCard(lobby: Lobby): ChanceCard {
   if (lobby.chanceCards.length === 0) {
-    console.log("reshuffling");
     lobby.chanceCards = shuffleCards(deepClone(CHANCECARDS));
   }
   return lobby.chanceCards.pop()!;
 }
 
-function doChanceAction(card: ChanceCard, player: Player) {
+function doChanceAction(lobby: Lobby, card: ChanceCard, player: Player) {
   switch (card.action.type) {
     case "receive":
-      player.money += card.action.value;
+      payPlayer(lobby, player, card.action.value);
       break;
     case "lose":
-      player.money -= card.action.value;
+      reducePlayerBalance(lobby, player, card.action.value);
       break;
     case "move":
       const previousSpace = player.currentSpace;
       player.currentSpace = card.action.value;
       if (player.currentSpace < previousSpace) {
-        player.money += 200;
+        payPlayer(lobby, player, 200);
       }
+      break;
+  }
+}
+
+function generateBank() {
+  let bank: { value: string; ownerIndex: number }[][] = [[], [], [], []];
+  for (let i = 0; i < 36; i++) {
+    bank[0].push({ value: "ones", ownerIndex: -1 });
+  }
+
+  for (let i = 0; i < 36; i++) {
+    bank[1].push({ value: "tens", ownerIndex: -1 });
+  }
+
+  for (let i = 0; i < 16; i++) {
+    bank[2].push({ value: "hundreds", ownerIndex: -1 });
+  }
+
+  for (let i = 0; i < 40; i++) {
+    bank[3].push({ value: "fivehundreds", ownerIndex: -1 });
+  }
+  return bank;
+}
+
+function calculateBillCounts(money: number) {
+  const fiveHundreds = Math.floor(money / 500);
+  const hundreds = Math.floor((money % 500) / 100);
+  const tens = Math.floor((money % 100) / 10);
+  const ones = Math.floor(money % 10);
+  return [ones, tens, hundreds, fiveHundreds];
+}
+
+function payPlayer(
+  lobby: Lobby,
+  player: Player,
+  amount: number,
+  payingPlayer: Player | "bank" = "bank"
+) {
+  const bank = lobby.bank;
+  const bankIsPaying = payingPlayer === "bank";
+  const receiverIndex = lobby.players.indexOf(player);
+
+  if (bankIsPaying) {
+    const billCounts = calculateBillCounts(amount);
+    for (const billCountIndex in billCounts) {
+      const billCount = billCounts[billCountIndex];
+      for (let i = 0; i < billCount; i++) {
+        let availableBill: { value: string; ownerIndex: number } | undefined =
+          undefined;
+        for (let i = bank[billCountIndex].length - 1; i > 0; i--) {
+          const bill = bank[billCountIndex][i];
+          if (bill.ownerIndex === -1) {
+            availableBill = bill;
+            break;
+          }
+        }
+
+        if (!availableBill) return;
+        availableBill.ownerIndex = receiverIndex;
+      }
+    }
+  } else {
+    return;
+  }
+}
+
+function reducePlayerBalance(lobby: Lobby, player: Player, amount: number) {
+  const fiveHundredsCount = {
+    value: 500,
+    count: lobby.bank[3].filter((bill) => {
+      return bill.ownerIndex === lobby.players.indexOf(player);
+    }),
+  };
+  const hundredsCount = {
+    value: 100,
+    count: lobby.bank[2].filter((bill) => {
+      return bill.ownerIndex === lobby.players.indexOf(player);
+    }),
+  };
+  const tensCount = {
+    value: 10,
+    count: lobby.bank[1].filter((bill) => {
+      return bill.ownerIndex === lobby.players.indexOf(player);
+    }),
+  };
+  const onesCount = {
+    value: 1,
+    count: lobby.bank[0].filter((bill) => {
+      return bill.ownerIndex === lobby.players.indexOf(player);
+    }),
+  };
+
+  let total = 0;
+  let billsToRemove = [0, 0, 0, 0];
+  for (const count of [
+    fiveHundredsCount,
+    hundredsCount,
+    tensCount,
+    onesCount,
+  ]) {
+    for (let i = 0; i < count.count.length; ) {
+      console.log(i);
+      total += count.value;
+      billsToRemove[
+        [onesCount, tensCount, hundredsCount, fiveHundredsCount].indexOf(count)
+      ] += 1;
+      if (total > amount) {
+        for (const billCountIndex in billsToRemove) {
+          let billCount = billsToRemove[billCountIndex];
+          for (let i = 0; i < billCount; i++) {
+            const bankCurrency = lobby.bank[billCountIndex];
+            if (bankCurrency.length > 0) {
+              let j = bankCurrency.length - 1;
+              while (billCount > 0 && j > 0) {
+                console.log(j, bankCurrency[0].value);
+                const bill = bankCurrency[j];
+                if (bill.ownerIndex === lobby.players.indexOf(player)) {
+                  bill.ownerIndex = -1;
+                  billCount--;
+                }
+                j--;
+              }
+            }
+          }
+        }
+        console.log("betaler ", total);
+        console.log("får tilbake ", total - amount);
+        payPlayer(lobby, player, total - amount);
+        return;
+      }
+    }
   }
 }
 
@@ -122,7 +252,7 @@ io.on("connection", (socket) => {
   let lobby: Lobby | undefined = undefined;
 
   socket.on("createLobby", () => {
-    const lobby = {
+    const lobby: Lobby = {
       code: createLobbyCode(),
       adminID: socket.id,
       availableColors: ["indianred", "deepskyblue", "khaki", "darkseagreen"],
@@ -132,6 +262,7 @@ io.on("connection", (socket) => {
       currentPlayerIndex: -1,
       spaces: deepClone(SPACES),
       chanceCards: shuffleCards(deepClone(CHANCECARDS)),
+      bank: generateBank(),
     };
     LOBBIES.push(lobby);
 
@@ -188,6 +319,9 @@ io.on("connection", (socket) => {
       lobby.currentPlayerIndex = Math.ceil(
         Math.random() * lobby.players.length - 1
       );
+      for (const player of lobby.players) {
+        payPlayer(lobby, player, 1500);
+      }
 
       io.to(lobby.code).emit("gameStarted");
 
@@ -265,9 +399,8 @@ io.on("connection", (socket) => {
       (otherSpace) => space.id === otherSpace.id
     );
     if (!boughtSpace) return;
-    if (boughtSpace.price.buy > player.money) return;
     boughtSpace.ownerID = socket.id;
-    player.money -= boughtSpace.price.buy;
+    reducePlayerBalance(lobby, player, boughtSpace.price.buy);
     io.to(lobby.code).emit("updateLobby", lobby);
   });
 
@@ -324,5 +457,5 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(4000);
-console.log("listening on port 4000");
+httpServer.listen(4949);
+console.log("listening on port 4949");
