@@ -83,6 +83,23 @@ export default function Game() {
     return player.id === socket.id
   })
 
+  const playerPositions =
+    players.length === 2
+      ? [
+          [29, -0.15, -22.5],
+
+          [-29, -0.15, -22.5],
+        ]
+      : [
+          [31, -0.15, -22.5],
+
+          [-22.5, -0.15, 29],
+
+          [-29, -0.15, -22.5],
+
+          [22.5, -0.15, -29],
+        ]
+
   if (!loaded || !player) return null
   return (
     <GameContainer>
@@ -174,17 +191,22 @@ export default function Game() {
         <Physics allowSleep={true}>
           {players.map((player) => {
             return (
-              <Piece
-                key={player.id}
-                player={player}
-                players={players}
-                spaces={spaces}
-              />
+              <>
+                <Piece
+                  key={player.id}
+                  player={player}
+                  players={players}
+                  spaces={spaces}
+                />
+                <MoneyCollection
+                  position={playerPositions[players.indexOf(player)]}
+                  money={player.money}
+                />
+              </>
             )
           })}
           <House color='limegreen' />
           <CardCollection spaces={spaces} players={players} />
-          <MoneyCollection bank={bank} players={players} />
           <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
           <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
           {[...Array(chanceCardCount)].map((__, index) => (

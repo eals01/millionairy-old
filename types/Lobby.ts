@@ -13,5 +13,4 @@ export type Lobby = {
   currentPlayerIndex: number;
   spaces: Space[];
   chanceCards: ChanceCard[];
-  bank: { value: string; ownerIndex: number }[][];
 };

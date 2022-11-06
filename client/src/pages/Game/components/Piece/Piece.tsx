@@ -39,12 +39,6 @@ export default function Piece({
     const boundaryWidth = boundaries.start[0] - boundaries.end[0]
     const boundaryHeight = boundaries.start[2] - boundaries.end[2]
 
-    console.log(
-      player.id.substring(0, 3),
-      spaces[spaceNumber].name,
-      countOfOtherPlayersOnSpace,
-      playersNumberOnSpace
-    )
     return [
       boundaries.start[0] -
         (boundaryWidth / (countOfOtherPlayersOnSpace + 2)) *
