@@ -11,7 +11,7 @@ export default function PropertyCard({ position, face, rotation }) {
       initial={false}
       animate={{
         x: [null, position[0]],
-        y: [position[0] / 100, 50, position[1]],
+        y: [null, 50 + position[0] / 100, position[1]],
         z: [null, position[2]],
         rotateX: [null, rotation[0]],
         rotateY: [null, rotation[1]],

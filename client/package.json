@@ -50,5 +50,8 @@
     "singleQuote": true,
     "jsxSingleQuote": true,
     "htmlSingleQuote": true
+  },
+  "devDependencies": {
+    "@types/three": "^0.146.0"
   }
 }

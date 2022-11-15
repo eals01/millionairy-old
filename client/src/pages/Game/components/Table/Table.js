@@ -1,11 +1,6 @@
 import { useBox } from '@react-three/cannon'
-import { TextureLoader } from 'three/src/loaders/TextureLoader'
-import { useLoader } from '@react-three/fiber'
-import wood from './wood.jpg'
 
 export default function Table() {
-  const texture = useLoader(TextureLoader, wood)
-
   const [tableRef] = useBox(() => ({
     mass: 1,
     type: 'Static',
@@ -16,24 +11,24 @@ export default function Table() {
 
   return (
     <group>
-      <mesh ref={tableRef} receiveShadow>
+      <mesh ref={tableRef} receiveShadow castShadow>
         <boxGeometry args={[100, 2, 200]} />
         <meshPhysicalMaterial color='#C6A27E' />
       </mesh>
-      <mesh position={[-40, -32.3, -74]}>
-        <boxGeometry args={[6, 60, 6]} />
+      <mesh position={[-40, -17.3, -74]} receiveShadow castShadow>
+        <boxGeometry args={[6, 30, 6]} />
         <meshPhysicalMaterial color='#C6A27E' />
       </mesh>
-      <mesh position={[40, -32.3, -74]}>
-        <boxGeometry args={[6, 60, 6]} />
+      <mesh position={[40, -17.3, -74]} receiveShadow castShadow>
+        <boxGeometry args={[6, 30, 6]} />
         <meshPhysicalMaterial color='#C6A27E' />
       </mesh>
-      <mesh position={[-40, -32.3, 74]}>
-        <boxGeometry args={[6, 60, 6]} />
+      <mesh position={[-40, -17.3, 74]} receiveShadow castShadow>
+        <boxGeometry args={[6, 30, 6]} />
         <meshPhysicalMaterial color='#C6A27E' />
       </mesh>
-      <mesh position={[40, -32.3, 74]}>
-        <boxGeometry args={[6, 60, 6]} />
+      <mesh position={[40, -17.3, 74]} receiveShadow castShadow>
+        <boxGeometry args={[6, 30, 6]} />
         <meshPhysicalMaterial color='#C6A27E' />
       </mesh>
     </group>

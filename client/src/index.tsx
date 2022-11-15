@@ -1,3 +1,4 @@
+import { MotionCanvas } from 'framer-motion-3d'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
@@ -10,7 +11,6 @@ const GlobalStyle = createGlobalStyle`
     height: 100%;
     margin: 0;
     font-family: sans-serif;
-    background: #331800;
   }
 `
 

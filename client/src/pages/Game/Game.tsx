@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/cannon'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, PerspectiveCamera, Sky, Stars } from '@react-three/drei'
 import socket from '../../socket'
+import * as THREE from 'three'
+import { extend } from '@react-three/fiber'
 
 import Piece from './components/Piece/Piece'
 import Dice from './components/Dice/Dice'
 import Chance from './components/Chance/Chance'
 import Board from './components/Board/Board'
-import House from './components/House/House'
 import Table from './components/Table/Table'
 
 import { Player } from '../../../../types/Player'
@@ -19,6 +20,13 @@ import Property from './components/PropertyCard/Property'
 import CardCollection from './components/CardCollection/CardCollection'
 import ChanceCard from './components/Chance/ChanceCard'
 import MoneyCollection from './components/MoneyCollection.tsx/MoneyCollection'
+import Box from './components/Box/Box'
+import Room from './components/Room/Room'
+import WheelOfFortune from './components/WheelOfFortune/WheelOfFortune'
+import { LayoutCamera, MotionCanvas } from 'framer-motion-3d'
+
+extend(THREE)
+extend({ LayoutCamera })
 
 export default function Game() {
   const [loaded, setLoaded] = useState(false)
@@ -27,9 +35,16 @@ export default function Game() {
   const [isCurrentPlayer, setIsCurrentPlayer] = useState(false)
   const [turnEndable, setTurnEndable] = useState(false)
   const [chanceCardCount, setChanceCardCount] = useState(0)
-  const [bank, setBank] = useState<{ value: string; ownerIndex: number }[][]>(
-    []
-  )
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(-2)
+  const [displayedCardId, setDisplayedCardId] = useState(-1)
+  const [cameraPosition, setCameraPosition] = useState([50, 30, 0])
+  const [cameraRotation, setCameraRotation] = useState([
+    -Math.PI / 2,
+    Math.PI / 3,
+    Math.PI / 2,
+  ])
+  const [cameraFOV, setCameraFOV] = useState(90)
+  const [propertyCardDisplayed, setPropertyCardDisplayed] = useState(false)
 
   useEffect(() => {
     socket.emit('gamePageEntered')
@@ -41,19 +56,38 @@ export default function Game() {
       setIsCurrentPlayer(
         lobby.players[lobby.currentPlayerIndex].id === socket.id
       )
+      setCurrentPlayerIndex(lobby.currentPlayerIndex)
       setChanceCardCount(lobby.chanceCards.length)
-      setBank(lobby.bank)
     })
 
     socket.on('turnEndable', () => {
       setTurnEndable(true)
     })
 
+    socket.on('displayPropertyCard', () => {
+      setPropertyCardDisplayed(true)
+      setCameraPosition([10, 20, 0])
+      setCameraRotation([0, Math.PI / 2, 0])
+    })
+
+    socket.on('purchaseDeclined', () => {
+      setPropertyCardDisplayed(false)
+      setCameraPosition([50, 30, 0])
+      setCameraRotation([-Math.PI / 2, Math.PI / 3, Math.PI / 2])
+    })
+
     return () => {
       socket.off('updateLobby')
       socket.off('turnEndable')
+      socket.off('propertyCardDisplayed')
     }
   }, [])
+
+  useEffect(() => {
+    if (players.length > 0) {
+      setDisplayedCardId(players[currentPlayerIndex].currentSpace)
+    }
+  }, [players])
 
   function throwDice() {
     socket.emit('throwDice')
@@ -72,6 +106,13 @@ export default function Game() {
   function buyProperty() {
     if (!player) return
     socket.emit('buyProperty', spaces[player.currentSpace])
+    setPropertyCardDisplayed(false)
+    setCameraPosition([50, 30, 0])
+    setCameraRotation([-Math.PI / 2, Math.PI / 3, Math.PI / 2])
+  }
+
+  function dontBuyProperty() {
+    socket.emit('declinePurchase')
   }
 
   function endTurn() {
@@ -83,22 +124,27 @@ export default function Game() {
     return player.id === socket.id
   })
 
-  const playerPositions =
+  const playerRotations =
     players.length === 2
-      ? [
-          [29, -0.15, -22.5],
+      ? [0, Math.PI]
+      : [0, Math.PI, Math.PI / 2, -Math.PI / 2]
 
-          [-29, -0.15, -22.5],
-        ]
-      : [
-          [31, -0.15, -22.5],
+  function calculateBillCounts(money: number) {
+    const fiveHundreds = Math.floor(money / 500)
+    const hundreds = Math.floor((money % 500) / 100)
+    const tens = Math.floor((money % 100) / 10)
+    const ones = Math.floor(money % 10)
+    return [ones, tens, hundreds, fiveHundreds]
+  }
 
-          [-22.5, -0.15, 29],
-
-          [-29, -0.15, -22.5],
-
-          [22.5, -0.15, -29],
-        ]
+  let bank = [40, 40, 20, 30]
+  for (const player of players) {
+    let index = 0
+    for (const billCount of calculateBillCounts(player.money)) {
+      bank[index] -= billCount
+      index += 1
+    }
+  }
 
   if (!loaded || !player) return null
   return (
@@ -140,8 +186,12 @@ export default function Game() {
               ['property', 'transport', 'utility'].includes(
                 spaces[player.currentSpace].type
               ) &&
-              spaces[player.currentSpace].ownerID === '' && (
-                <button onClick={buyProperty}>Buy</button>
+              spaces[player.currentSpace].ownerID === '' &&
+              propertyCardDisplayed && (
+                <>
+                  <button onClick={buyProperty}>Buy</button>
+                  <button onClick={dontBuyProperty}>Don't buy</button>
+                </>
               )}
             <button onClick={endTurn}>End turn</button>
           </>
@@ -176,46 +226,172 @@ export default function Game() {
         </div>
       </div>
       <ChanceCard currentPlayer={isCurrentPlayer} />
-      <Canvas shadows camera={{ position: [100, 0, 0], fov: 60 }}>
-        <ambientLight intensity={0.25} />
-        <spotLight
-          intensity={0.6}
-          angle={Math.PI / 4}
-          penumbra={0.5}
-          position={[50, 75, 150]}
-          castShadow
-          shadow-mapSize-height={2048}
-          shadow-mapSize-width={2048}
+      <MotionCanvas shadows>
+        <LayoutCamera
+          animate={{
+            x: cameraPosition[0],
+            y: cameraPosition[1],
+            z: cameraPosition[2],
+            rotateX: cameraRotation[0],
+            rotateY: cameraRotation[1],
+            rotateZ: cameraRotation[2],
+          }}
+          fov={cameraFOV}
+          transition={{ type: 'tween', duration: 3 }}
+          key={undefined}
+          view={undefined}
+          attach={undefined}
+          args={undefined}
+          clear={undefined}
+          raycast={undefined}
+          castShadow={undefined}
+          type={undefined}
+          name={undefined}
+          id={undefined}
+          uuid={undefined}
+          parent={undefined}
+          modelViewMatrix={undefined}
+          normalMatrix={undefined}
+          matrixWorld={undefined}
+          matrixAutoUpdate={undefined}
+          matrixWorldNeedsUpdate={undefined}
+          visible={undefined}
+          receiveShadow={undefined}
+          frustumCulled={undefined}
+          renderOrder={undefined}
+          animations={undefined}
+          userData={undefined}
+          customDepthMaterial={undefined}
+          customDistanceMaterial={undefined}
+          isObject3D={undefined}
+          onBeforeRender={undefined}
+          onAfterRender={undefined}
+          applyMatrix4={undefined}
+          applyQuaternion={undefined}
+          setRotationFromAxisAngle={undefined}
+          setRotationFromEuler={undefined}
+          setRotationFromMatrix={undefined}
+          setRotationFromQuaternion={undefined}
+          rotateOnAxis={undefined}
+          rotateOnWorldAxis={undefined}
+          rotateX={undefined}
+          rotateY={undefined}
+          rotateZ={undefined}
+          translateOnAxis={undefined}
+          translateX={undefined}
+          translateY={undefined}
+          translateZ={undefined}
+          localToWorld={undefined}
+          worldToLocal={undefined}
+          add={undefined}
+          remove={undefined}
+          removeFromParent={undefined}
+          getObjectById={undefined}
+          getObjectByName={undefined}
+          getObjectByProperty={undefined}
+          getWorldPosition={undefined}
+          getWorldQuaternion={undefined}
+          getWorldScale={undefined}
+          getWorldDirection={undefined}
+          traverse={undefined}
+          traverseVisible={undefined}
+          traverseAncestors={undefined}
+          updateMatrix={undefined}
+          updateMatrixWorld={undefined}
+          updateWorldMatrix={undefined}
+          toJSON={undefined}
+          clone={undefined}
+          copy={undefined}
+          addEventListener={undefined}
+          hasEventListener={undefined}
+          removeEventListener={undefined}
+          dispatchEvent={undefined}
+          matrixWorldInverse={undefined}
+          projectionMatrix={undefined}
+          projectionMatrixInverse={undefined}
+          isCamera={undefined}
+          isPerspectiveCamera={undefined}
+          zoom={undefined}
+          aspect={undefined}
+          near={undefined}
+          far={undefined}
+          focus={undefined}
+          filmGauge={undefined}
+          filmOffset={undefined}
+          setFocalLength={undefined}
+          getFocalLength={undefined}
+          getEffectiveFOV={undefined}
+          getFilmWidth={undefined}
+          getFilmHeight={undefined}
+          setViewOffset={undefined}
+          clearViewOffset={undefined}
+          updateProjectionMatrix={undefined}
+          setLens={undefined}
         />
-        <OrbitControls maxPolarAngle={Math.PI / 2.5} />
+        <Sky
+          distance={450000}
+          sunPosition={[0, -0.1, -1]}
+          inclination={0}
+          azimuth={0.25}
+        />
+        <Stars radius={300} />
+        <ambientLight intensity={0.05} />
+        <pointLight
+          position={[-150, 200, -400]}
+          color='#c5d9ff'
+          intensity={0.3}
+          castShadow
+          shadow-mapSize-height={32768}
+          shadow-mapSize-width={32768}
+          shadow-radius={4}
+        />
+        <spotLight
+          position={[0, 150, 0]}
+          color='#ffbb73'
+          intensity={0.2}
+          castShadow
+          shadow-mapSize-height={512}
+          shadow-mapSize-width={512}
+          shadow-radius={1}
+          shadow-bias={-0.0001}
+        />
         <Physics allowSleep={true}>
           {players.map((player) => {
             return (
               <>
                 <Piece
-                  key={player.id}
+                  key={'piece' + player.id}
                   player={player}
                   players={players}
                   spaces={spaces}
                 />
                 <MoneyCollection
-                  position={playerPositions[players.indexOf(player)]}
+                  key={'moneyCollection' + player.id}
+                  position={[31, -0.15, 4.5]}
+                  rotation={playerRotations[players.indexOf(player)]}
                   money={player.money}
                 />
               </>
             )
           })}
-          <House color='limegreen' />
-          <CardCollection spaces={spaces} players={players} />
+          <CardCollection
+            spaces={spaces}
+            players={players}
+            displayedCardId={displayedCardId}
+            bank={bank}
+          />
           <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
           <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
           {[...Array(chanceCardCount)].map((__, index) => (
             <Chance height={index / 4} key={`chance${index}`} />
           ))}
           <Board />
+          <WheelOfFortune />
           <Table />
+          <Room />
+          <Box />
         </Physics>
-      </Canvas>
+      </MotionCanvas>
     </GameContainer>
   )
 }

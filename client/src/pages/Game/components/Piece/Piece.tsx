@@ -14,7 +14,7 @@ export default function Piece({
   spaces: Space[]
 }) {
   const [previousSpace, setPreviousSpace] = useState(0)
-  const [keyFrames, setKeyFrames] = useState<(number | null)[][]>([
+  const [keyFrames, setKeyFrames] = useState<number[][]>([
     [positionPiece(0)[0]],
     [1],
     [positionPiece(0)[2]],
@@ -32,7 +32,9 @@ export default function Piece({
     let playersNumberOnSpace = 0
     for (const otherPlayer of players) {
       if (player === otherPlayer) break
-      playersNumberOnSpace++
+      if (player.currentSpace === otherPlayer.currentSpace) {
+        playersNumberOnSpace++
+      }
     }
 
     const boundaries = spaces[spaceNumber].boundaries
@@ -56,7 +58,7 @@ export default function Piece({
         player.currentSpace > previousSpace
           ? player.currentSpace - previousSpace
           : Math.abs(previousSpace - 40) + player.currentSpace
-      let keyFrames: (number | null)[][] = [[], [], []]
+      let keyFrames: number[][] = [[], [], []]
       keyFrames[1].push(Math.random() / 100 + 1)
       for (
         let spaceNumber = previousSpace;
@@ -68,8 +70,8 @@ export default function Piece({
         keyFrames[1].push(3, 1)
         keyFrames[2].push(intermediateSpacePosition[2])
       }
-      keyFrames[0][0] = null
-      keyFrames[2][0] = null
+      keyFrames[0][0] = positionPiece(previousSpace)[0]
+      keyFrames[2][0] = positionPiece(previousSpace)[2]
       keyFrames[1].splice(keyFrames.length - 2, 2)
       setDuration(gap / 2)
       setKeyFrames(keyFrames)
