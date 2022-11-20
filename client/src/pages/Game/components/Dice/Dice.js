@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import { Vector3, Quaternion } from 'three'
 import { useGLTF } from '@react-three/drei'
 import { useBox } from '@react-three/cannon'
 import { useEffect, useState } from 'react'
@@ -38,7 +38,6 @@ export default function Model({ offset, active }) {
 
     return () => {
       socket.off('diceThrown')
-      socket.off('updateLobby')
     }
   }, [])
 
@@ -85,15 +84,15 @@ export default function Model({ offset, active }) {
 
   function getResult() {
     let vectors = [
-      new THREE.Vector3(1, 0, 0),
-      new THREE.Vector3(0, 0, -1),
-      new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3(0, -1, 0),
-      new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3(-1, 0, 0),
+      new Vector3(1, 0, 0),
+      new Vector3(0, 0, -1),
+      new Vector3(0, 1, 0),
+      new Vector3(0, -1, 0),
+      new Vector3(0, 0, 1),
+      new Vector3(-1, 0, 0),
     ]
 
-    const quaternion = new THREE.Quaternion(
+    const quaternion = new Quaternion(
       quaternionRotation[0],
       quaternionRotation[1],
       quaternionRotation[2],

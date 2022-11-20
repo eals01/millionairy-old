@@ -36,14 +36,19 @@ export default function CardCollection({
   const [purchaseDeclined, setPurchaseDeclined] = useState(false)
 
   useEffect(() => {
+    socket.on('displayPropertyCard', () => {
+      setPurchaseDeclined(false)
+    })
+
     socket.on('purchaseDeclined', () => {
       setPurchaseDeclined(true)
     })
-  }, [])
 
-  useEffect(() => {
-    setPurchaseDeclined(false)
-  }, [displayedCardId])
+    return () => {
+      socket.off('displayPropertyCard')
+      socket.off('purchaseDeclined')
+    }
+  }, [])
 
   return (
     <group>
