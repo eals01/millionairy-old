@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/cannon'
 import { OrbitControls, PerspectiveCamera, Sky, Stars } from '@react-three/drei'
 import socket from '../../socket'
@@ -234,7 +233,8 @@ export default function Game() {
       </div>
       <ChanceCard currentPlayer={isCurrentPlayer} />
       <MotionCanvas shadows>
-        <Camera view={cameraView} />
+        {/*<Camera view={cameraView} />*/}
+        <OrbitControls />
         {/*<Sky
           distance={450000}
           sunPosition={[0, -0.1, -1]}
@@ -262,7 +262,7 @@ export default function Game() {
           shadow-bias={-0.0001}
         />*/}
         <ambientLight intensity={0.5} />
-        <WheelOfFortune />
+        {/*<WheelOfFortune />*/}
         <Box />
         {/*<Room />*/}
         <Physics gravity={[0, -12, 0]} allowSleep={true}>

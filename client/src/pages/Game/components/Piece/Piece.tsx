@@ -53,22 +53,24 @@ export default function Piece({
   }
 
   useEffect(() => {
-    if (previousSpace !== player.currentSpace) {
+    const targetSpace = player.currentSpace
+    if (previousSpace !== targetSpace) {
       const gap =
-        player.currentSpace > previousSpace
-          ? player.currentSpace - previousSpace
-          : Math.abs(previousSpace - 40) + player.currentSpace
+        targetSpace > previousSpace
+          ? targetSpace - previousSpace
+          : Math.abs(previousSpace - 40) + targetSpace
       let keyFrames: number[][] = [[], [], []]
       keyFrames[1].push(Math.random() / 100 + 1)
       for (
         let spaceNumber = previousSpace;
-        spaceNumber % 40 != player.currentSpace + 1;
+        spaceNumber <= previousSpace + gap;
         spaceNumber++
       ) {
         const intermediateSpacePosition = positionPiece(spaceNumber % 40)
         keyFrames[0].push(intermediateSpacePosition[0])
         keyFrames[1].push(3, 1)
         keyFrames[2].push(intermediateSpacePosition[2])
+        console.log(spaceNumber)
       }
       keyFrames[0][0] = positionPiece(previousSpace)[0]
       keyFrames[2][0] = positionPiece(previousSpace)[2]
@@ -77,8 +79,8 @@ export default function Piece({
       setKeyFrames(keyFrames)
     }
 
-    setPreviousSpace(player.currentSpace)
-  }, [player])
+    setPreviousSpace(targetSpace)
+  }, [player.currentSpace])
 
   function finishedMoving() {
     if (previousSpace === 0 && player.currentSpace === 0) return

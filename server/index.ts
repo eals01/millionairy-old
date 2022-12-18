@@ -68,8 +68,7 @@ function performSpaceAction(lobby: Lobby, player: Player) {
   } else if (["property", "transport", "utility"].includes(space.type)) {
     if (space.ownerID === "") {
       io.to(lobby.code).emit("displayPropertyCard");
-    }
-    if (space.ownerID !== "" && space.ownerID !== player.id) {
+    } else if (space.ownerID !== "" && space.ownerID !== player.id) {
       const ownerOfSpace = lobby.players.find(
         (player) => player.id === space.ownerID
       );
