@@ -2,7 +2,15 @@ import { TextureLoader } from 'three/src/loaders/TextureLoader'
 import { useLoader } from '@react-three/fiber'
 import { motion } from 'framer-motion-3d'
 
-export default function Money({ position, face, rotation }) {
+export default function CurrencyBill({
+  position,
+  face,
+  rotation,
+}: {
+  position: number[]
+  face: string
+  rotation: number
+}) {
   const texture = useLoader(TextureLoader, face)
 
   return (

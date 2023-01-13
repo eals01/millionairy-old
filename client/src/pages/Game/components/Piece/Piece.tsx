@@ -6,61 +6,78 @@ import socket from '../../../../socket'
 
 export default function Piece({
   player,
-  players,
   spaces,
 }: {
   player: Player
-  players: Player[]
   spaces: Space[]
 }) {
+  const [duration, setDuration] = useState(1)
   const [previousSpace, setPreviousSpace] = useState(0)
-  const [keyFrames, setKeyFrames] = useState<number[][]>([
+  const [keyFrames, setKeyFrames] = useState<(number | null)[][]>([
     [positionPiece(0)[0]],
     [1],
-    [positionPiece(0)[2]],
+    [positionPiece(0)[1]],
   ])
-  const [duration, setDuration] = useState(1)
+
+  function calculatePosition(space: Space, positionNumber: number) {
+    const start = space.boundaries.start
+    const end = space.boundaries.end
+
+    switch (positionNumber) {
+      case 0:
+        return [
+          start[0] + (end[0] - start[0]) / 3,
+          start[2] + (end[2] - start[2]) / 5,
+        ]
+
+      case 2:
+        return [
+          start[0] + (end[0] - start[0]) / 3,
+          start[2] + (3 * (end[2] - start[2])) / 5,
+        ]
+
+      case 1:
+        return [
+          start[0] + (2 * (end[0] - start[0])) / 3,
+          start[2] + (2 * (end[2] - start[2])) / 5,
+        ]
+
+      case 3:
+        return [
+          start[0] + (2 * (end[0] - start[0])) / 3,
+          start[2] + (4 * (end[2] - start[2])) / 5,
+        ]
+
+      default:
+        return [
+          start[0] + (end[0] - start[0]) / 2,
+          start[2] + (end[2] - start[2]) / 2,
+        ]
+    }
+  }
 
   function positionPiece(spaceNumber: number) {
-    let countOfOtherPlayersOnSpace = 0
-    for (const otherPlayer of players) {
-      if (spaceNumber == otherPlayer.currentSpace && otherPlayer !== player) {
-        countOfOtherPlayersOnSpace++
-      }
-    }
+    const space = spaces[spaceNumber]
 
-    let playersNumberOnSpace = 0
-    for (const otherPlayer of players) {
-      if (player === otherPlayer) break
-      if (player.currentSpace === otherPlayer.currentSpace) {
-        playersNumberOnSpace++
-      }
-    }
-
-    const boundaries = spaces[spaceNumber].boundaries
-    const boundaryWidth = boundaries.start[0] - boundaries.end[0]
-    const boundaryHeight = boundaries.start[2] - boundaries.end[2]
-
-    return [
-      boundaries.start[0] -
-        (boundaryWidth / (countOfOtherPlayersOnSpace + 2)) *
-          (playersNumberOnSpace + 1),
-      1,
-      boundaries.start[2] -
-        (boundaryHeight / (countOfOtherPlayersOnSpace + 2)) *
-          (playersNumberOnSpace + 1),
-    ]
+    let availableIndex = -1
+    space.playersOnSpace.find((space, index: number) => {
+      availableIndex = index
+      return space === null || space.id === player.id
+    })
+    return calculatePosition(space, availableIndex)
   }
 
   useEffect(() => {
     const targetSpace = player.currentSpace
+
     if (previousSpace !== targetSpace) {
       const gap =
         targetSpace > previousSpace
           ? targetSpace - previousSpace
           : Math.abs(previousSpace - 40) + targetSpace
-      let keyFrames: number[][] = [[], [], []]
+      let keyFrames: (number | null)[][] = [[], [], []]
       keyFrames[1].push(Math.random() / 100 + 1)
+
       for (
         let spaceNumber = previousSpace;
         spaceNumber <= previousSpace + gap;
@@ -69,12 +86,13 @@ export default function Piece({
         const intermediateSpacePosition = positionPiece(spaceNumber % 40)
         keyFrames[0].push(intermediateSpacePosition[0])
         keyFrames[1].push(3, 1)
-        keyFrames[2].push(intermediateSpacePosition[2])
-        console.log(spaceNumber)
+        keyFrames[2].push(intermediateSpacePosition[1])
       }
-      keyFrames[0][0] = positionPiece(previousSpace)[0]
-      keyFrames[2][0] = positionPiece(previousSpace)[2]
+
+      keyFrames[0][0] = null
+      keyFrames[2][0] = null
       keyFrames[1].splice(keyFrames.length - 2, 2)
+
       setDuration(gap / 2)
       setKeyFrames(keyFrames)
     }
@@ -82,22 +100,23 @@ export default function Piece({
     setPreviousSpace(targetSpace)
   }, [player.currentSpace])
 
-  function finishedMoving() {
-    if (previousSpace === 0 && player.currentSpace === 0) return
-    socket.emit('finishedMoving')
-  }
+  console.log(keyFrames)
 
   return (
     <motion.mesh
       castShadow
       initial={false}
+      // bruh
+      // @ts-ignore
       animate={{
-        x: [...keyFrames[0]],
-        y: [...keyFrames[1]],
-        z: [...keyFrames[2]],
+        x: keyFrames[0],
+        y: keyFrames[1],
+        z: keyFrames[2],
       }}
       transition={{ duration: duration, type: 'tween' }}
-      onAnimationComplete={finishedMoving}
+      onAnimationComplete={() => {
+        socket.emit('finishedMoving')
+      }}
     >
       <cylinderGeometry args={[0.6, 0.6, 2]} />
       <meshPhysicalMaterial color={player.color} />

@@ -1,6 +1,6 @@
-import Money from '../Money/Money'
-import textures from '../Money/faces/faces'
 import { AnimatePresence } from 'framer-motion'
+import CurrencyBill from '../CurrencyBill/CurrencyBill'
+import textures from '../CurrencyBill/faces/faces'
 
 function calculateBillCounts(money: number) {
   const fiveHundreds = Math.floor(money / 500)
@@ -10,20 +10,14 @@ function calculateBillCounts(money: number) {
   return [ones, tens, hundreds, fiveHundreds]
 }
 
-const moneyRotations = [
-  -0.0035542148185325126, -0.03649812891558371, -0.024480735271521527,
-  -0.02618536505838063, 0.03877931381088148, -0.0492274538476708,
-  -0.048619116786601003, -0.029501423703322052, 0.0355168572214577,
-  0.01748988937251446, -0.0029386513720251195, 0.014555042329934209,
-  -0.026469756615503905, 0.030955616676023978, -0.00020040811522950563,
-  0.03211633425455693, 0.025902097626396572, 0.010045558671036042,
-  0.020145820473164905, -0.034688376770824994, -0.034057310389452124,
-  0.02693470469993786, -0.010462921434977207, -0.022691227301098363,
-  0.04789473834722248, 0.02061132247159911, -0.037225026687600526,
-  -0.023119642554974475, -0.01764107687868717, 0.03283278653610845,
+const cardRotations = [
+  -0.0035, -0.0364, -0.0244, -0.0261, 0.0387, -0.0492, -0.0486, -0.0295, 0.0355,
+  0.0174, -0.0029, 0.01455, -0.0264, 0.0309, -0.0002, 0.0321, 0.0259, 0.01,
+  0.0201, -0.0346, -0.034, 0.0269, -0.0104, -0.0226, 0.0478, 0.0206, -0.0372,
+  -0.0231, -0.0176, 0.0328,
 ]
 
-export default function MoneyCollection({
+export default function CurrencyBills({
   position,
   rotation,
   money,
@@ -38,7 +32,7 @@ export default function MoneyCollection({
         {calculateBillCounts(money).map((billCount, billCountIndex) => {
           return [...Array(billCount)].map((__, billIndex) => {
             return (
-              <Money
+              <CurrencyBill
                 key={
                   'bill' +
                   billCountIndex +
@@ -52,7 +46,7 @@ export default function MoneyCollection({
                   billIndex / 10,
                   -billCountIndex * 6 - position[2],
                 ]}
-                rotation={moneyRotations[billIndex % 9]}
+                rotation={cardRotations[billIndex % 9]}
               />
             )
           })

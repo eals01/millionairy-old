@@ -54,15 +54,9 @@ export default function Model({ offset, active }) {
     }
   }, [])
 
-  function throwDice() {
-    if (active && !checkingForResult) {
-      socket.emit('throwDice')
-    }
-  }
-
+  const timeBeforeCheckingForResult = 100
   useEffect(() => {
     if (thrown) {
-      const timeBeforeCheckingForResult = 100
       setTimeout(() => {
         setCheckingForResult(true)
       }, timeBeforeCheckingForResult)
@@ -81,6 +75,12 @@ export default function Model({ offset, active }) {
       }
     }
   })
+
+  function throwDice() {
+    if (active && !checkingForResult) {
+      socket.emit('throwDice')
+    }
+  }
 
   function getResult() {
     let vectors = [

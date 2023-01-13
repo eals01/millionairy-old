@@ -2,17 +2,14 @@ import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import socket from '../../../../socket'
 
-export default function ChanceCard({
-  currentPlayer,
-}: {
-  currentPlayer: boolean
-}) {
+export default function ChanceCard({ yourTurn }: { yourTurn: boolean }) {
   const [text, setText] = useState('')
   const [active, setActive] = useState(false)
 
   useEffect(() => {
     socket.on('drawChanceCard', (card) => {
       setText(card.text)
+      setActive(true)
     })
 
     socket.on('dismissChanceCard', () => {
@@ -26,12 +23,7 @@ export default function ChanceCard({
     }
   }, [])
 
-  useEffect(() => {
-    if (text === '') return
-    setActive(true)
-  }, [text])
-
-  function dismiss() {
+  function dismissPrompt() {
     socket.emit('dismissChanceCard')
   }
 
@@ -42,7 +34,7 @@ export default function ChanceCard({
         <span>?</span>
         <h3>Chance</h3>
         <p>{text}</p>
-        {currentPlayer && <button onClick={dismiss}>Dismiss</button>}
+        {yourTurn && <button onClick={dismissPrompt}>Dismiss</button>}
       </div>
     </ChanceCardContainer>
   )

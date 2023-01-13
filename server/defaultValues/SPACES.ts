@@ -20,7 +20,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 1,
@@ -41,7 +42,8 @@ const SPACES: Space[] = [
     },
     color: 'brown',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 2,
@@ -62,7 +64,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 3,
@@ -83,7 +86,8 @@ const SPACES: Space[] = [
     },
     color: 'brown',
     propertyNumber: 1,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 4,
@@ -104,7 +108,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 5,
@@ -125,7 +130,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 2,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 6,
@@ -146,7 +152,8 @@ const SPACES: Space[] = [
     },
     color: 'lightblue',
     propertyNumber: 3,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 7,
@@ -167,7 +174,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 8,
@@ -188,7 +196,8 @@ const SPACES: Space[] = [
     },
     color: 'lightblue',
     propertyNumber: 4,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 9,
@@ -209,7 +218,8 @@ const SPACES: Space[] = [
     },
     color: 'lightblue',
     propertyNumber: 5,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 10,
@@ -230,7 +240,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 11,
@@ -251,7 +262,8 @@ const SPACES: Space[] = [
     },
     color: 'pink',
     propertyNumber: 6,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 12,
@@ -272,7 +284,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 7,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 13,
@@ -293,7 +306,8 @@ const SPACES: Space[] = [
     },
     color: 'pink',
     propertyNumber: 8,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 14,
@@ -314,7 +328,8 @@ const SPACES: Space[] = [
     },
     color: 'pink',
     propertyNumber: 9,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 15,
@@ -335,7 +350,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 10,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 16,
@@ -356,7 +372,8 @@ const SPACES: Space[] = [
     },
     color: 'orange',
     propertyNumber: 11,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 17,
@@ -377,7 +394,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 18,
@@ -398,7 +416,8 @@ const SPACES: Space[] = [
     },
     color: 'orange',
     propertyNumber: 12,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 19,
@@ -419,7 +438,8 @@ const SPACES: Space[] = [
     },
     color: 'orange',
     propertyNumber: 13,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 20,
@@ -440,7 +460,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 21,
@@ -461,7 +482,8 @@ const SPACES: Space[] = [
     },
     color: 'red',
     propertyNumber: 14,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 22,
@@ -482,7 +504,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 23,
@@ -503,7 +526,8 @@ const SPACES: Space[] = [
     },
     color: 'red',
     propertyNumber: 15,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 24,
@@ -524,7 +548,8 @@ const SPACES: Space[] = [
     },
     color: 'red',
     propertyNumber: 16,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 25,
@@ -545,7 +570,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 17,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 26,
@@ -566,7 +592,8 @@ const SPACES: Space[] = [
     },
     color: 'yellow',
     propertyNumber: 18,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 27,
@@ -587,7 +614,8 @@ const SPACES: Space[] = [
     },
     color: 'yellow',
     propertyNumber: 19,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 28,
@@ -608,7 +636,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 20,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 29,
@@ -629,7 +658,8 @@ const SPACES: Space[] = [
     },
     color: 'yellow',
     propertyNumber: 21,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 30,
@@ -650,7 +680,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 31,
@@ -671,7 +702,8 @@ const SPACES: Space[] = [
     },
     color: 'green',
     propertyNumber: 22,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 32,
@@ -692,7 +724,8 @@ const SPACES: Space[] = [
     },
     color: 'green',
     propertyNumber: 23,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 33,
@@ -713,7 +746,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 34,
@@ -734,7 +768,8 @@ const SPACES: Space[] = [
     },
     color: 'green',
     propertyNumber: 24,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 35,
@@ -755,7 +790,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 25,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 36,
@@ -776,7 +812,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 37,
@@ -797,7 +834,8 @@ const SPACES: Space[] = [
     },
     color: 'blue',
     propertyNumber: 26,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 38,
@@ -818,7 +856,8 @@ const SPACES: Space[] = [
     },
     color: '',
     propertyNumber: 0,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   },
   {
     id: 39,
@@ -827,7 +866,7 @@ const SPACES: Space[] = [
     streetNumber: 2,
     type: 'property',
     boundaries: {
-      start: [14, 5, -18],
+      start: [14, 5, -19.5],
       end: [18, 5, -24.5]
     },
     ownerID: '',
@@ -839,7 +878,8 @@ const SPACES: Space[] = [
     },
     color: 'blue',
     propertyNumber: 27,
-    houseCount: 0
+    houseCount: 0,
+    playersOnSpace: [null, null, null, null]
   }
 ]
 

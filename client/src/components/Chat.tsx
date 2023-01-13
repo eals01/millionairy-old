@@ -1,15 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { isReturnStatement } from 'typescript'
-import { Message } from '../../../types/Message'
 import socket from '../socket'
+import { Message } from '../../../types/Message'
 
 export default function Chat() {
   const [chat, setChat] = useState<Message[]>([])
-  const [firstLoad, setFirstLoad] = useState(true)
   const [input, setInput] = useState('')
 
-  const messageContainerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     socket.emit('loadChat')
 
@@ -21,34 +18,6 @@ export default function Chat() {
       socket.off('updateChat')
     }
   }, [])
-
-  useEffect(() => {
-    if (!messageContainerRef.current) return
-    const firstTimeScrollbarInitiated =
-      messageContainerRef.current.scrollHeight -
-        messageContainerRef.current.clientHeight <
-      32
-    const scrolledToBottom =
-      messageContainerRef.current.scrollTop +
-        messageContainerRef.current.clientHeight ===
-      messageContainerRef.current.scrollHeight - 32
-    const distanceToBottom =
-      messageContainerRef.current.scrollHeight -
-      messageContainerRef.current.clientHeight
-
-    if (firstLoad && chat.length > 0) {
-      messageContainerRef.current.scrollBy(0, distanceToBottom)
-      setFirstLoad(false)
-    }
-    if (firstTimeScrollbarInitiated) {
-      messageContainerRef.current.scrollBy(0, distanceToBottom)
-    }
-    if (scrolledToBottom) {
-      messageContainerRef.current.scrollBy(0, distanceToBottom)
-    }
-  }, [chat])
-
-  const inputRef = useRef<HTMLInputElement>(null)
 
   function handleKeyDown(event: { key: string }) {
     if (event.key === 'Enter') {
@@ -63,19 +32,12 @@ export default function Chat() {
         value: input,
       })
       setInput('')
-      if (messageContainerRef.current) {
-        messageContainerRef.current.scrollBy(
-          0,
-          messageContainerRef.current.scrollHeight -
-            messageContainerRef.current.clientHeight
-        )
-      }
     }
   }
 
   return (
-    <ChatContainer>
-      <MessageContainer ref={messageContainerRef}>
+    <Container>
+      <MessageContainer>
         {chat.map((message, index) =>
           message.author === '' ? (
             <ChatMessage key={index}>
@@ -90,16 +52,15 @@ export default function Chat() {
         )}
       </MessageContainer>
       <Input
-        ref={inputRef}
         value={input}
         onChange={(event) => setInput(event.target.value)}
         onKeyDown={handleKeyDown}
       />
-    </ChatContainer>
+    </Container>
   )
 }
 
-export const ChatContainer = styled.div`
+export const Container = styled.div`
   position: relative;
   box-sizing: border-box;
   width: 600px;

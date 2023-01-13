@@ -4,18 +4,9 @@ import styled from 'styled-components'
 import socket from '../../socket'
 
 export default function Home() {
-  const navigate = useNavigate()
-
   const [lobbyCode, setLobbyCode] = useState('')
 
-  function createLobby() {
-    socket.emit('createLobby')
-  }
-
-  function joinLobby(code: string) {
-    socket.emit('joinLobby', code)
-  }
-
+  const navigate = useNavigate()
   useEffect(() => {
     socket.on('lobbyCreated', (code) => {
       joinLobby(code)
@@ -30,6 +21,14 @@ export default function Home() {
       socket.off('lobbyJoined')
     }
   }, [])
+
+  function createLobby() {
+    socket.emit('createLobby')
+  }
+
+  function joinLobby(code: string) {
+    socket.emit('joinLobby', code)
+  }
 
   return (
     <HomeContainer>

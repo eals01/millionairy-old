@@ -1,3 +1,5 @@
+import { Player } from './Player'
+
 export type Space = {
   id: number
   name: string
@@ -18,4 +20,5 @@ export type Space = {
   color: string
   propertyNumber: number
   houseCount: 0 | 1 | 2 | 3 | 4 | 5
+  playersOnSpace: (Player | null)[]
 }

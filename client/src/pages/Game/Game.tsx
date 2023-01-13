@@ -1,29 +1,27 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Physics } from '@react-three/cannon'
-import { OrbitControls, PerspectiveCamera, Sky, Stars } from '@react-three/drei'
-import socket from '../../socket'
+import { Html, OrbitControls } from '@react-three/drei'
+import { LayoutCamera, MotionCanvas } from 'framer-motion-3d'
 import * as THREE from 'three'
 import { extend } from '@react-three/fiber'
+import socket from '../../socket'
+import { Player } from '../../../../types/Player'
+import { Space } from '../../../../types/Space'
 
 import Piece from './components/Piece/Piece'
 import Dice from './components/Dice/Dice'
-import Chance from './components/Chance/Chance'
-import Board from './components/Board/Board'
-import Table from './components/Table/Table'
-
-import { Player } from '../../../../types/Player'
-import { Space } from '../../../../types/Space'
-import Chat, { ChatContainer } from '../../components/Chat'
-import Property from './components/PropertyCard/Property'
-import CardCollection from './components/CardCollection/CardCollection'
 import ChanceCard from './components/Chance/ChanceCard'
-import MoneyCollection from './components/MoneyCollection.tsx/MoneyCollection'
-import Room from './components/Room/Room'
-import WheelOfFortune from './components/WheelOfFortune/WheelOfFortune'
-import { LayoutCamera, MotionCanvas } from 'framer-motion-3d'
-import Box from './components/Box/Box'
+import Board from './components/Board/Board'
+import Table from './components/Scene/components/Table/Table'
 import Camera from './components/Camera/Camera'
+import Scene from './components/Scene/Scene'
+import DebugMenu from './components/DebugMenu/DebugMenu'
+import Chat, { Container } from '../../components/Chat'
+import PropertyCards from './components/PropertyCards/PropertyCards'
+import ChancePrompt from './components/Chance/ChancePrompt'
+import CurrencyBills from './components/CurrencyBills/CurrencyBills'
+import ActionButtons from './components/ActionButtons/ActionButtons'
 
 extend(THREE)
 extend({ LayoutCamera })
@@ -44,6 +42,7 @@ export default function Game() {
     socket.emit('gamePageEntered')
 
     socket.on('updateLobby', (lobby) => {
+      console.log(lobby)
       setLoaded(true)
       setPlayers(lobby.players)
       setSpaces(lobby.spaces)
@@ -61,6 +60,9 @@ export default function Game() {
     socket.on('displayPropertyCard', () => {
       setPropertyCardDisplayed(true)
       setCameraView('card')
+      if (players.length > 0) {
+        setDisplayedCardId(players[currentPlayerIndex].currentSpace)
+      }
     })
 
     socket.on('purchaseDeclined', () => {
@@ -95,20 +97,6 @@ export default function Game() {
       setDisplayedCardId(players[currentPlayerIndex].currentSpace)
     }
   }, [players])
-
-  function throwDice() {
-    socket.emit('throwDice')
-  }
-
-  function moveOne() {
-    socket.emit('emitDiceResult', 0)
-    socket.emit('emitDiceResult', 1)
-  }
-
-  function moveTwo() {
-    socket.emit('emitDiceResult', 1)
-    socket.emit('emitDiceResult', 1)
-  }
 
   function buyProperty() {
     if (!player) return
@@ -156,148 +144,55 @@ export default function Game() {
   return (
     <GameContainer>
       <Chat />
-      <div
-        style={{
-          position: 'absolute',
-          zIndex: 1,
-          top: 20,
-          left: 20,
-        }}
-      >
-        <Property space={spaces[player.currentSpace]} />
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          zIndex: 1,
-          bottom: 20,
-          right: 20,
-          width: 400,
-          height: 200,
-          background: 'white',
-          border: '1px solid black',
-        }}
-      >
-        {isCurrentPlayer && !turnEndable && (
-          <>
-            <button onClick={throwDice}>Throw dice</button>
-            <button onClick={moveOne}>Move 1</button>
-            <button onClick={moveTwo}>Move 2</button>
-          </>
-        )}
-
-        {turnEndable && (
-          <>
-            {turnEndable &&
-              ['property', 'transport', 'utility'].includes(
-                spaces[player.currentSpace].type
-              ) &&
-              spaces[player.currentSpace].ownerID === '' &&
-              propertyCardDisplayed && (
-                <>
-                  <button onClick={buyProperty}>Buy</button>
-                  <button onClick={dontBuyProperty}>Don't buy</button>
-                </>
-              )}
-            <button onClick={endTurn}>End turn</button>
-          </>
-        )}
-        <div>
-          {players.map((player, index) => {
-            return (
-              <div key={index} style={{ display: 'flex' }}>
-                <div
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    background: player.color,
-                  }}
-                />
-                <span>
-                  <b>{player.id.substring(0, 3)}</b>
-                  <span style={{ marginLeft: '16px' }}>
-                    space: {player.currentSpace},
-                  </span>
-                  <span style={{ marginLeft: '16px' }}>
-                    money: {player.money}
-                  </span>
-                </span>
-                {player.id === socket.id && (
-                  <span style={{ marginLeft: '16px' }}>(you)</span>
-                )}
-              </div>
-            )
-          })}
-          <p>Your turn: {isCurrentPlayer.toString()}</p>
-        </div>
-      </div>
-      <ChanceCard currentPlayer={isCurrentPlayer} />
-      <MotionCanvas shadows>
+      <DebugMenu
+        players={players}
+        spaces={spaces}
+        isCurrentPlayer={isCurrentPlayer}
+        turnEndable={turnEndable}
+        propertyCardDisplayed={propertyCardDisplayed}
+        buyProperty={buyProperty}
+        dontBuyProperty={dontBuyProperty}
+        endTurn={endTurn}
+      />
+      <ChancePrompt yourTurn={isCurrentPlayer} />
+      <ActionButtons />
+      <MotionCanvas shadows camera={{ position: [30, 30, 0] }}>
+        <Scene />
         {/*<Camera view={cameraView} />*/}
         <OrbitControls />
-        {/*<Sky
-          distance={450000}
-          sunPosition={[0, -0.1, -1]}
-          inclination={0}
-          azimuth={0.25}
-        />
-        <Stars radius={300} />
-        <pointLight
-          position={[-150, 200, -400]}
-          color='#c5d9ff'
-          intensity={0.3}
-          castShadow
-          shadow-mapSize-height={32768}
-          shadow-mapSize-width={32768}
-          shadow-radius={4}
-        />
-        <spotLight
-          position={[0, 150, 0]}
-          color='#ffbb73'
-          intensity={0.2}
-          castShadow
-          shadow-mapSize-height={512}
-          shadow-mapSize-width={512}
-          shadow-radius={1}
-          shadow-bias={-0.0001}
-        />*/}
-        <ambientLight intensity={0.5} />
-        {/*<WheelOfFortune />*/}
-        <Box />
-        {/*<Room />*/}
         <Physics gravity={[0, -12, 0]} allowSleep={true}>
-          {players.map((player) => {
-            return (
-              <>
-                <Piece
-                  key={'piece' + player.id}
-                  player={player}
-                  players={players}
-                  spaces={spaces}
-                />
-                <MoneyCollection
-                  key={'moneyCollection' + player.id}
-                  position={[31, -0.15, 4.5]}
-                  rotation={playerRotations[players.indexOf(player)]}
-                  money={player.money}
-                />
-              </>
-            )
-          })}
-          <CardCollection
-            spaces={spaces}
-            players={players}
-            displayedCardId={displayedCardId}
-            bank={bank}
-          />
           <Dice offset={0} active={isCurrentPlayer && !turnEndable} />
           <Dice offset={2} active={isCurrentPlayer && !turnEndable} />
-          {[...Array(chanceCardCount)].map((__, index) => (
-            <Chance height={index / 4} key={`chance${index}`} />
+          {[...Array(chanceCardCount)].map((_, index) => (
+            <ChanceCard height={index / 4} key={`chance${index}`} />
           ))}
           <Board />
           <Table />
         </Physics>
+        {players.map((player) => {
+          return (
+            <>
+              <Piece
+                key={'piece' + player.id}
+                player={player}
+                spaces={spaces}
+              />
+              <CurrencyBills
+                key={'moneyCollection' + player.id}
+                position={[31, -0.15, 4.5]}
+                rotation={playerRotations[players.indexOf(player)]}
+                money={player.money}
+              />
+            </>
+          )
+        })}
+        <PropertyCards
+          spaces={spaces}
+          players={players}
+          displayedCardId={displayedCardId}
+          propertyCardDisplayed={propertyCardDisplayed}
+          bank={bank}
+        />
       </MotionCanvas>
     </GameContainer>
   )
@@ -307,7 +202,7 @@ const GameContainer = styled.div`
   width: 100%;
   height: 100%;
 
-  > ${ChatContainer} {
+  > ${Container} {
     z-index: 1;
     position: absolute;
     right: 20px;

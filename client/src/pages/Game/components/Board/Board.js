@@ -1,7 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { useBox } from '@react-three/cannon'
 import model from './Board.gltf'
-import Lights from './Lights'
 
 export default function Board() {
   const [boardRef] = useBox(() => ({
