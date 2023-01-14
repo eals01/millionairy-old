@@ -1,5 +1,5 @@
-import { Player } from '../../../../../../types/Player'
-import { Space } from '../../../../../../types/Space'
+import { Player } from '../../../../types/Player'
+import { Space } from '../../../../types/Space'
 import socket from '../../../../socket'
 
 export default function DebugMenu({

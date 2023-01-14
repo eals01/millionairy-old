@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import socket from '../socket'
-import { Message } from '../../../types/Message'
+import { Message } from '../types/Message'
 
 export default function Chat() {
   const [chat, setChat] = useState<Message[]>([])

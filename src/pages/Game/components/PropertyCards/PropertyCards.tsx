@@ -1,11 +1,11 @@
-import { Space } from '../../../../../../types/Space'
+import { Space } from '../../../../types/Space'
 import PropertyCard from '../PropertyCard/PropertyCard'
 import faces from '../PropertyCard/faces/faces'
 import CurrencyBill from '../CurrencyBill/CurrencyBill'
 import textures from '../CurrencyBill/faces/faces'
 import { AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Player } from '../../../../../../types/Player'
+import { Player } from '../../../../types/Player'
 import socket from '../../../../socket'
 
 const cardRotations = [

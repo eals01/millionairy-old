@@ -1,6 +1,6 @@
 import { LayoutCamera } from 'framer-motion-3d'
 import { useEffect, useState } from 'react'
-import { Player } from '../../../../../../types/Player'
+import { Player } from '../../../../types/Player'
 import socket from '../../../../socket'
 
 export default function Camera({ view }: { view: string }) {

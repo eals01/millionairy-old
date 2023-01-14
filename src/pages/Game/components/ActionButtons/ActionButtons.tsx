@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { Lobby } from '../../../../../../types/Lobby'
+import { Lobby } from '../../../../types/Lobby'
 import socket from '../../../../socket'
 
 export default function ActionButtons() {

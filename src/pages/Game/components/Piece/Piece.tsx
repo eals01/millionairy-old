@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion-3d'
 import { useEffect, useState } from 'react'
-import { Player } from '../../../../../../types/Player'
-import { Space } from '../../../../../../types/Space'
+import { Player } from '../../../../types/Player'
+import { Space } from '../../../../types/Space'
 import socket from '../../../../socket'
 
 export default function Piece({

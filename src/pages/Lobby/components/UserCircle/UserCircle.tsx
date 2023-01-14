@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import socket from '../../../../socket'
-import { Player } from '../../../../../../types/Player'
+import { Player } from '../../../../types/Player'
 
 export default function UserCircle() {
   const [players, setPlayers] = useState<Player[]>([])
