@@ -4,18 +4,4 @@
 
 ### About this project
 
-Online monopoly-like game made with React and Socket.IO
-
-### How to run
-
-Client:
-
-1. `cd client`
-2. `npm i`
-3. `npm start`
-
-Server:
-
-1. `cd server`
-2. `npm i`
-3. `npm start`
+Online monopoly-like game made with React and Socket.IO. Check it out [live](https://millionairy.onrender.com/) (unstable for now... 😌)
