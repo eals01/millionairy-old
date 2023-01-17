@@ -17,12 +17,13 @@ import ChancePrompt from './components/Chance/ChancePrompt'
 import CurrencyBills from './components/CurrencyBills/CurrencyBills'
 import ActionButtons from './components/ActionButtons/ActionButtons'
 import { useLobby } from '../../context/LobbyContext'
+import TradeWindow from './components/TradeWindow/TradeWindow'
 
 extend(THREE)
 extend({ LayoutCamera })
 
 export default function Game() {
-  const { players, spaces, chanceCards } = useLobby()
+  const { players, spaces, chanceCards, trade } = useLobby()
 
   const playerRotations =
     players.list.length === 2
@@ -34,6 +35,7 @@ export default function Game() {
     <GameContainer>
       <ChancePrompt yourTurn={yourTurn} />
       <ActionButtons />
+      {trade.active && <TradeWindow />}
       <MotionCanvas shadows camera={{ position: [30, 30, 0] }}>
         <Scene />
         <OrbitControls />
@@ -70,6 +72,10 @@ export default function Game() {
 }
 
 const GameContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   width: 100%;
   height: 100%;
 `

@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import styled from 'styled-components'
 import socket from '../../../../socket'
 import { useLobby } from '../../../../context/LobbyContext'
 
 export default function ActionButtons() {
   const { players, dice } = useLobby()
+  const [tradeOptionsVisible, setTradeOptionsVisible] = useState(false)
 
   function throwDice() {
     socket.emit('throwDice')
@@ -11,6 +13,18 @@ export default function ActionButtons() {
 
   function purchaseProperty() {
     socket.emit('purchaseProperty')
+  }
+
+  function showTradeOptions() {
+    setTradeOptionsVisible(true)
+  }
+
+  function hideTradeOptions() {
+    setTradeOptionsVisible(false)
+  }
+
+  function trade(id: string) {
+    socket.emit('trade', id)
   }
 
   function endTurn() {
@@ -33,9 +47,18 @@ export default function ActionButtons() {
       <button disabled={!players.currentFinishedMoving || true}>
         Manage Properties
       </button>
-      <button disabled={!players.currentFinishedMoving || true}>
-        Trade
-      </button>
+      <div className='trade' onMouseEnter={showTradeOptions} onMouseLeave={hideTradeOptions}>
+        <button disabled={!(players.currentFinishedMoving)}>
+          Trade
+        </button>
+        {tradeOptionsVisible && <div className='tradeOptions'>
+          {players.list.map(player => {
+            if (!(socket.id === player.id)) {
+              return <div onClick={() => { trade(player.id) }}>{player.id.substring(0, 3)}</div>
+            }
+          })}
+        </div>}
+      </div>
       <button onClick={endTurn} disabled={!(players.currentFinishedMoving && !dice.throwable)}>
         End turn
       </button>
@@ -55,8 +78,33 @@ const Container = styled.div`
   width: 100%;
   height: 100px;
 
-  > button {
+  .trade {
+    position: relative;
+  }
+
+  .tradeOptions {
+    position: absolute;
+    bottom: 50px;
+    width: 100%;
+    background: white;
+
+    > div {
+      height: 30px;
+      width: 100%;
+      background: white;
+      border-bottom: 1px solid grey;
+      line-height: 30px;
+      text-align: center;
+
+      &:hover {
+        background: #eeeeee;
+        cursor: pointer;
+      }
+    }
+  }
+
+  button {
     height: 50px;
-    width: 200px;
+    width: 150px;
   }
 `

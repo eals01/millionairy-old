@@ -17,6 +17,11 @@ export type Lobby = {
     throwable: boolean
     throwsInARow: number
   }
+  trade: {
+    active: boolean
+    leftPlayer: Player
+    rightPlayer: Player
+  }
   chat: Message[]
   spaces: Space[]
   chanceCards: ChanceCard[]
@@ -33,8 +38,13 @@ export const defaultLobby: Lobby = {
   },
   dice: {
     state: [],
-    throwable: false,
-    throwsInARow: -1,
+    throwable: true,
+    throwsInARow: 0,
+  },
+  trade: {
+    active: false,
+    leftPlayer: deepClone(defaultPlayer),
+    rightPlayer: deepClone(defaultPlayer),
   },
   chat: [],
   spaces: [],
