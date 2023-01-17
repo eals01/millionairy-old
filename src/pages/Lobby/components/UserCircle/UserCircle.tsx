@@ -1,26 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import styled from 'styled-components'
+import { useLobby } from '../../../../context/LobbyContext'
 import socket from '../../../../socket'
-import { Player } from '../../../../types/Player'
 
 export default function UserCircle() {
-  const [players, setPlayers] = useState<Player[]>([])
-  const [code, setCode] = useState('')
-  const [adminID, setAdminID] = useState('')
-
-  useEffect(() => {
-    socket.emit('lobbyPageEntered')
-
-    socket.on('updateLobby', (lobby) => {
-      setPlayers(lobby.players)
-      setCode(lobby.code)
-      setAdminID(lobby.adminID)
-    })
-
-    return () => {
-      socket.off('updateLobby')
-    }
-  }, [])
+  const { players, code } = useLobby()
 
   const userCircleRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -33,15 +17,13 @@ export default function UserCircle() {
       let offsetDegrees = 0
       for (let user of users) {
         user.style.transform = `translate(
-          ${
-            Math.floor(Math.cos(offsetDegrees * (Math.PI / 180)) * radius) -
-            user.offsetWidth / 2 +
-            'px'
+          ${Math.floor(Math.cos(offsetDegrees * (Math.PI / 180)) * radius) -
+          user.offsetWidth / 2 +
+          'px'
           }, 
-          ${
-            Math.floor(Math.sin(offsetDegrees * (Math.PI / 180)) * radius) -
-            user.offsetHeight / 2 +
-            'px'
+          ${Math.floor(Math.sin(offsetDegrees * (Math.PI / 180)) * radius) -
+          user.offsetHeight / 2 +
+          'px'
           }
         )`
         offsetDegrees += degreesPerCorner
@@ -53,10 +35,10 @@ export default function UserCircle() {
     <Container>
       <LobbyCode>{code}</LobbyCode>
       <Circle ref={userCircleRef}>
-        {players.map((player, key) => {
+        {players.list.map((player, key) => {
           return (
             <span key={key} style={{ color: player.color }}>
-              {(adminID === player.id ? '★' : '') +
+              {(player === players.admin ? '★' : '') +
                 player.id.substring(0, 3) +
                 (player.id === socket.id ? ' (you)' : '')}
             </span>

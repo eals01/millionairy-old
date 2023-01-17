@@ -7,7 +7,10 @@ import { useFrame } from '@react-three/fiber'
 import model from './Dice.gltf'
 import socket from '../../../../socket'
 
-export default function Model({ offset, active }) {
+export default function Model({ offset }) {
+  const [yourTurn, setYourTurn] = useState(true)
+  const [turnEndable, setTurnEndable] = useState(false)
+
   const [thrown, setThrown] = useState(false)
   const [checkingForResult, setCheckingForResult] = useState(false)
 
@@ -15,6 +18,10 @@ export default function Model({ offset, active }) {
   const [quaternionRotation, setQuaternionRotation] = useState([0, 0, 0, 0])
 
   useEffect(() => {
+    socket.on('turnEndable', () => {
+      setTurnEndable(true)
+    })
+
     socket.on('diceThrown', (values) => {
       setThrown(true)
       api.position.set(0, 0, 0)
@@ -37,6 +44,8 @@ export default function Model({ offset, active }) {
     })
 
     return () => {
+      socket.off('updateLobby')
+      socket.off('turnEndable')
       socket.off('diceThrown')
     }
   }, [])
@@ -71,13 +80,13 @@ export default function Model({ offset, active }) {
       if (stopped) {
         setThrown(false)
         setCheckingForResult(false)
-        if (active) socket.emit('emitDiceResult', getResult())
+        if (yourTurn && !turnEndable) socket.emit('emitDiceResult', getResult())
       }
     }
   })
 
   function throwDice() {
-    if (active && !checkingForResult) {
+    if (yourTurn && !turnEndable && !checkingForResult) {
       socket.emit('throwDice')
     }
   }

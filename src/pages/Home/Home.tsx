@@ -1,26 +1,9 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import styled from 'styled-components'
 import socket from '../../socket'
 
 export default function Home() {
   const [lobbyCode, setLobbyCode] = useState('')
-
-  const navigate = useNavigate()
-  useEffect(() => {
-    socket.on('lobbyCreated', (code) => {
-      joinLobby(code)
-    })
-
-    socket.on('lobbyJoined', () => {
-      navigate('./lobby')
-    })
-
-    return () => {
-      socket.off('lobbyCreated')
-      socket.off('lobbyJoined')
-    }
-  }, [])
 
   function createLobby() {
     socket.emit('createLobby')

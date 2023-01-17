@@ -1,23 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import styled from 'styled-components'
+import { useLobby } from '../context/LobbyContext'
 import socket from '../socket'
-import { Message } from '../types/Message'
 
 export default function Chat() {
-  const [chat, setChat] = useState<Message[]>([])
+  const { chat } = useLobby()
   const [input, setInput] = useState('')
-
-  useEffect(() => {
-    socket.emit('loadChat')
-
-    socket.on('updateChat', (chat) => {
-      setChat(chat)
-    })
-
-    return () => {
-      socket.off('updateChat')
-    }
-  }, [])
 
   function handleKeyDown(event: { key: string }) {
     if (event.key === 'Enter') {

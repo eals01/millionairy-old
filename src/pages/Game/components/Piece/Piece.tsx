@@ -20,6 +20,7 @@ export default function Piece({
   ])
 
   function calculatePosition(space: Space, positionNumber: number) {
+    console.log(space)
     const start = space.boundaries.start
     const end = space.boundaries.end
 
@@ -60,15 +61,15 @@ export default function Piece({
     const space = spaces[spaceNumber]
 
     let availableIndex = -1
-    space.playersOnSpace.find((space, index: number) => {
+    space.playerIDsOnSpace.find((id, index: number) => {
       availableIndex = index
-      return space === null || space.id === player.id
+      return id === null || id === player.id
     })
     return calculatePosition(space, availableIndex)
   }
 
   useEffect(() => {
-    const targetSpace = player.currentSpace
+    const targetSpace = player.currentSpace.id
 
     if (previousSpace !== targetSpace) {
       const gap =
@@ -98,9 +99,7 @@ export default function Piece({
     }
 
     setPreviousSpace(targetSpace)
-  }, [player.currentSpace])
-
-  console.log(keyFrames)
+  }, [player.currentSpace.id])
 
   return (
     <motion.mesh

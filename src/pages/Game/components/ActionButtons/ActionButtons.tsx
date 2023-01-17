@@ -1,54 +1,44 @@
-import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { Lobby } from '../../../../types/Lobby'
 import socket from '../../../../socket'
+import { useLobby } from '../../../../context/LobbyContext'
 
 export default function ActionButtons() {
-  const [lobby, setLobby] = useState<Lobby | undefined>()
-  const [diceThrowable, setDiceThrowable] = useState(true)
-  const [diceReThrowable, setDiceReThrowable] = useState(false)
-
-  useEffect(() => {
-    socket.emit('gamePageEntered')
-
-    socket.on('updateLobby', (lobby) => {
-      setLobby(lobby)
-    })
-
-    socket.on('diceThrown', () => {
-      setDiceThrowable(false)
-    })
-
-    return () => {
-      socket.off('updateLobby')
-      socket.off('diceThrown')
-    }
-  }, [])
+  const { players, dice } = useLobby()
 
   function throwDice() {
     socket.emit('throwDice')
   }
 
-  if (!lobby) return null
-  const player = lobby.players[lobby.currentPlayerIndex]
-  const currentSpace = lobby.spaces[player.currentSpace]
+  function purchaseProperty() {
+    socket.emit('purchaseProperty')
+  }
 
-  const yourTurn = socket.id === player.id
+  function endTurn() {
+    socket.emit('endTurn')
+  }
+
+  const currentSpace = players.current.currentSpace
   const spacePurchasable =
     ['property', 'transport', 'utility'].includes(currentSpace.type) &&
-    currentSpace.ownerID === ''
-
+    currentSpace.ownerID === null
+  if (socket.id !== players.current.id) return null
   return (
     <Container>
-      <button onClick={throwDice} disabled={!diceThrowable}>
+      <button onClick={throwDice} disabled={!(dice.throwable)}>
         Throw Dice
       </button>
-      <button disabled={diceThrowable && !spacePurchasable}>
+      <button onClick={purchaseProperty} disabled={!(players.currentFinishedMoving && spacePurchasable)}>
         Purchase property
       </button>
-      <button disabled={diceThrowable}>Manage Properties</button>
-      <button disabled={diceThrowable}>Trade</button>
-      <button disabled={diceThrowable}>End turn</button>
+      <button disabled={!players.currentFinishedMoving || true}>
+        Manage Properties
+      </button>
+      <button disabled={!players.currentFinishedMoving || true}>
+        Trade
+      </button>
+      <button onClick={endTurn} disabled={!(players.currentFinishedMoving && !dice.throwable)}>
+        End turn
+      </button>
     </Container>
   )
 }

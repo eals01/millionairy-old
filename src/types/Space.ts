@@ -10,9 +10,9 @@ export type Space = {
     start: number[]
     end: number[]
   }
-  ownerID: string
+  ownerID: string | null
   price: {
-    buy: number
+    purchase: number
     parking: number[]
     house: number
     tax: number
@@ -20,5 +20,28 @@ export type Space = {
   color: string
   propertyNumber: number
   houseCount: 0 | 1 | 2 | 3 | 4 | 5
-  playersOnSpace: (Player | null)[]
+  playerIDsOnSpace: (string | null)[]
+}
+
+export const defaultSpace: Space = {
+  id: -1,
+  name: '',
+  column: -1,
+  streetNumber: -1,
+  type: '',
+  boundaries: {
+    start: [],
+    end: [],
+  },
+  ownerID: null,
+  price: {
+    purchase: -1,
+    parking: [],
+    house: -1,
+    tax: -1,
+  },
+  color: '',
+  propertyNumber: -1,
+  houseCount: 0,
+  playerIDsOnSpace: [],
 }

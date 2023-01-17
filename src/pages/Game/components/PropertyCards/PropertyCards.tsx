@@ -1,122 +1,42 @@
-import { Space } from '../../../../types/Space'
-import PropertyCard from '../PropertyCard/PropertyCard'
-import faces from '../PropertyCard/faces/faces'
-import CurrencyBill from '../CurrencyBill/CurrencyBill'
-import textures from '../CurrencyBill/faces/faces'
 import { AnimatePresence } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useLobby } from '../../../../context/LobbyContext'
+import generatePlayerPositions from './functions/generatePlayerPositions'
+import cardRotations from './functions/cardRotations'
+import PropertyCard from '../PropertyCard/PropertyCard'
+import CurrencyBill from '../CurrencyBill/CurrencyBill'
+import faces from '../PropertyCard/faces/faces'
+import textures from '../CurrencyBill/faces/faces'
+import { Space } from '../../../../types/Space'
 import { Player } from '../../../../types/Player'
-import socket from '../../../../socket'
 
-const cardRotations = [
-  -0.0035, -0.0364, -0.0244, -0.0261, 0.0387, -0.0492, -0.0486, -0.0295, 0.0355,
-  0.0174, -0.0029, 0.01455, -0.0264, 0.0309, -0.0002, 0.0321, 0.0259, 0.01,
-  0.0201, -0.0346, -0.034, 0.0269, -0.0104, -0.0226, 0.0478, 0.0206, -0.0372,
-  -0.0231, -0.0176, 0.0328,
-]
+export default function PropertyCards({ spaces, players }: { spaces: Space[], players: Player[] }) {
+  const displayedCardId = 0
+  const propertyCardDisplayed = false
 
-export default function PropertyCards({
-  spaces,
-  players,
-  displayedCardId,
-  propertyCardDisplayed,
-  bank,
-}: {
-  spaces: Space[]
-  players: Player[]
-  displayedCardId: number
-  propertyCardDisplayed: boolean
-  bank: number[]
-}) {
-  const [purchaseDeclined, setPurchaseDeclined] = useState(false)
+  function calculateBillCounts(money: number) {
+    const fiveHundreds = Math.floor(money / 500)
+    const hundreds = Math.floor((money % 500) / 100)
+    const tens = Math.floor((money % 100) / 10)
+    const ones = Math.floor(money % 10)
+    return [ones, tens, hundreds, fiveHundreds]
+  }
 
-  useEffect(() => {
-    socket.on('displayPropertyCard', () => {
-      setPurchaseDeclined(false)
-    })
-
-    socket.on('purchaseDeclined', () => {
-      setPurchaseDeclined(true)
-    })
-
-    return () => {
-      socket.off('displayPropertyCard')
-      socket.off('purchaseDeclined')
+  let bank = [40, 40, 20, 30]
+  for (const player of players) {
+    let index = 0
+    for (const billCount of calculateBillCounts(player.money)) {
+      bank[index] -= billCount
+      index += 1
     }
-  }, [])
+  }
 
   return (
     <group>
       {spaces.map((space, spaceIndex) => {
         if (space.column > -1) {
-          const playerPositions =
-            players.length === 2
-              ? [
-                  {
-                    player: players[0],
-                    position: [29, -0.15, 22.5],
-                    rotation: [0, Math.PI, 0],
-                    offset: [
-                      space.streetNumber * 1 + (space.column < 5 ? 0 : 10.5),
-                      space.streetNumber / 20,
-                      -(space.column % 5) * 5.2,
-                    ],
-                  },
-                  {
-                    player: players[1],
-                    position: [-29, -0.15, -22.5],
-                    rotation: [0, 0, 0],
-                    offset: [
-                      -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
-                      space.streetNumber / 20,
-                      (space.column % 5) * 5.2,
-                    ],
-                  },
-                ]
-              : [
-                  {
-                    player: players[0],
-                    position: [29, -0.15, 22.5],
-                    rotation: [0, Math.PI, 0],
-                    offset: [
-                      space.streetNumber * 1 + (space.column < 5 ? 0 : 10.5),
-                      space.streetNumber / 20,
-                      -(space.column % 5) * 5.2,
-                    ],
-                  },
-                  {
-                    player: players[1],
-                    position: [-22.5, -0.15, 29],
-                    rotation: [0, Math.PI / 2, 0],
-                    offset: [
-                      (space.column % 5) * 5.2,
-                      space.streetNumber / 20,
-                      space.streetNumber * 1 + (space.column < 5 ? 0 : 10.5),
-                    ],
-                  },
-                  {
-                    player: players[2],
-                    position: [-29, -0.15, -22.5],
-                    rotation: [0, 0, 0],
-                    offset: [
-                      -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
-                      space.streetNumber / 20,
-                      (space.column % 5) * 5.2,
-                    ],
-                  },
-                  {
-                    player: players[3],
-                    position: [22.5, -0.15, -29],
-                    rotation: [0, -Math.PI / 2, 0],
-                    offset: [
-                      -(space.column % 5) * 5.2,
-                      space.streetNumber / 20,
-                      -space.streetNumber * 1 + (space.column < 5 ? 0 : -10.5),
-                    ],
-                  },
-                ]
+          const playerPositions = generatePlayerPositions(space, players)
 
-          if (space.ownerID !== '') {
+          if (space.ownerID !== null) {
             const playerPosition = playerPositions.find(
               (playerPosition) => playerPosition.player.id === space.ownerID
             )
@@ -133,8 +53,8 @@ export default function PropertyCards({
                 rotation={[
                   0,
                   -Math.PI / 2 +
-                    playerPosition.rotation[1] +
-                    cardRotations[spaceIndex % 30] / 2,
+                  playerPosition.rotation[1] +
+                  cardRotations[spaceIndex % 30] / 2,
                   0,
                 ]}
                 face={faces[space.propertyNumber]}
@@ -143,8 +63,7 @@ export default function PropertyCards({
           } else {
             if (
               propertyCardDisplayed &&
-              space.id === displayedCardId &&
-              !purchaseDeclined
+              space.id === displayedCardId
             ) {
               return (
                 <PropertyCard

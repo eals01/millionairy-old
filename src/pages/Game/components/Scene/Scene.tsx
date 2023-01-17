@@ -31,7 +31,7 @@ export default function Scene() {
         shadow-mapSize-width={512}
         shadow-radius={1}
         shadow-bias={-0.0001}
-  />*/}
+      />*/}
       <ambientLight intensity={0.5} />
       <Box />
       {/*<Room />*/}
