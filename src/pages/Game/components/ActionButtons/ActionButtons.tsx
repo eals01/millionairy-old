@@ -41,14 +41,14 @@ export default function ActionButtons() {
       <button onClick={throwDice} disabled={!(dice.throwable)}>
         Throw Dice
       </button>
-      <button onClick={purchaseProperty} disabled={!(players.currentFinishedMoving && spacePurchasable)}>
+      <button onClick={purchaseProperty} disabled={!(players.currentFinishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)) && spacePurchasable)}>
         Purchase property
       </button>
-      <button disabled={!players.currentFinishedMoving || true}>
+      <button disabled={!(players.currentFinishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
         Manage Properties
       </button>
       <div className='trade' onMouseEnter={showTradeOptions} onMouseLeave={hideTradeOptions}>
-        <button disabled={!(players.currentFinishedMoving)}>
+        <button disabled={!(players.currentFinishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
           Trade
         </button>
         {tradeOptionsVisible && <div className='tradeOptions'>
@@ -59,7 +59,7 @@ export default function ActionButtons() {
           })}
         </div>}
       </div>
-      <button onClick={endTurn} disabled={!(players.currentFinishedMoving && !dice.throwable)}>
+      <button onClick={endTurn} disabled={!players.currentFinishedMoving || dice.throwable}>
         End turn
       </button>
     </Container>

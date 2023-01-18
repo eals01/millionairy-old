@@ -20,7 +20,6 @@ export default function Piece({
   ])
 
   function calculatePosition(space: Space, positionNumber: number) {
-    console.log(space)
     const start = space.boundaries.start
     const end = space.boundaries.end
 
