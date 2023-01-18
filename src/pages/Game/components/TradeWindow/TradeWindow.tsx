@@ -26,7 +26,7 @@ export default function TradeWindow() {
                 })}
             </div>
             <p>{trade.leftPlayer.money} $</p>
-            <input type='range' />
+            <input type='range' min={0} max={trade.leftPlayer.money} step={100} />
         </div>
         <div className='center'>
             <div>

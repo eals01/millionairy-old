@@ -12,12 +12,13 @@ import ChanceCard from './components/Chance/ChanceCard'
 import Board from './components/Board/Board'
 import Table from './components/Scene/components/Table/Table'
 import Scene from './components/Scene/Scene'
+import TradeWindow from './components/TradeWindow/TradeWindow'
+import ManagePropertiesWindow from './components/ManagePropertiesWindow/ManagePropertiesWindow'
 import PropertyCards from './components/PropertyCards/PropertyCards'
 import ChancePrompt from './components/Chance/ChancePrompt'
 import CurrencyBills from './components/CurrencyBills/CurrencyBills'
 import ActionButtons from './components/ActionButtons/ActionButtons'
 import { useLobby } from '../../context/LobbyContext'
-import TradeWindow from './components/TradeWindow/TradeWindow'
 
 extend(THREE)
 extend({ LayoutCamera })
@@ -36,6 +37,7 @@ export default function Game() {
       <ChancePrompt yourTurn={yourTurn} />
       <ActionButtons />
       {trade.active && <TradeWindow />}
+      {players.currentManagingProperties && <ManagePropertiesWindow />}
       <MotionCanvas shadows camera={{ position: [30, 30, 0] }}>
         <Scene />
         <OrbitControls />

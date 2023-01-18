@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import socket from '../../../../socket'
 import { useLobby } from '../../../../context/LobbyContext'
 
 export default function ActionButtons() {
-  const { players, dice } = useLobby()
+  const { spaces, players, dice } = useLobby()
   const [tradeOptionsVisible, setTradeOptionsVisible] = useState(false)
 
   function throwDice() {
@@ -16,7 +16,9 @@ export default function ActionButtons() {
   }
 
   function showTradeOptions() {
-    setTradeOptionsVisible(true)
+    if (players.list.length > 1) {
+      setTradeOptionsVisible(true)
+    }
   }
 
   function hideTradeOptions() {
@@ -27,11 +29,17 @@ export default function ActionButtons() {
     socket.emit('trade', id)
   }
 
+  function toggleManageProperties() {
+    socket.emit('toggleManageProperties')
+  }
+
   function endTurn() {
     socket.emit('endTurn')
   }
 
   const currentSpace = players.current.currentSpace
+  const finishedMoving = players.currentFinishedMoving
+  const ownedSpaces = spaces.filter((space) => space.ownerID === socket.id)
   const spacePurchasable =
     ['property', 'transport', 'utility'].includes(currentSpace.type) &&
     currentSpace.ownerID === null
@@ -41,14 +49,14 @@ export default function ActionButtons() {
       <button onClick={throwDice} disabled={!(dice.throwable)}>
         Throw Dice
       </button>
-      <button onClick={purchaseProperty} disabled={!(players.currentFinishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)) && spacePurchasable)}>
+      <button onClick={purchaseProperty} disabled={!(finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)) && spacePurchasable)}>
         Purchase property
       </button>
-      <button disabled={!(players.currentFinishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
+      <button onClick={toggleManageProperties} disabled={!(ownedSpaces.length > 0 && finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
         Manage Properties
       </button>
       <div className='trade' onMouseEnter={showTradeOptions} onMouseLeave={hideTradeOptions}>
-        <button disabled={!(players.currentFinishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
+        <button disabled={players.list.length === 1 || !(finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
           Trade
         </button>
         {tradeOptionsVisible && <div className='tradeOptions'>
@@ -59,7 +67,7 @@ export default function ActionButtons() {
           })}
         </div>}
       </div>
-      <button onClick={endTurn} disabled={!players.currentFinishedMoving || dice.throwable}>
+      <button onClick={endTurn} disabled={!finishedMoving || dice.throwable}>
         End turn
       </button>
     </Container>

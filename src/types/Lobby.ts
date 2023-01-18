@@ -11,6 +11,7 @@ export type Lobby = {
     admin: Player
     current: Player
     currentFinishedMoving: boolean
+    currentManagingProperties: boolean
   }
   dice: {
     state: number[]
@@ -35,6 +36,7 @@ export const defaultLobby: Lobby = {
     admin: deepClone(defaultPlayer),
     current: deepClone(defaultPlayer),
     currentFinishedMoving: false,
+    currentManagingProperties: false,
   },
   dice: {
     state: [],

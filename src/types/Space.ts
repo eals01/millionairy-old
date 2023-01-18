@@ -1,5 +1,3 @@
-import { Player } from './Player'
-
 export type Space = {
   id: number
   name: string
@@ -16,18 +14,20 @@ export type Space = {
     parking: number[]
     house: number
     tax: number
+    mortgage: number
   }
   color: string
   propertyNumber: number
   houseCount: 0 | 1 | 2 | 3 | 4 | 5
   playerIDsOnSpace: (string | null)[]
+  mortgaged: boolean
 }
 
 export const defaultSpace: Space = {
-  id: -1,
+  id: 0,
   name: '',
-  column: -1,
-  streetNumber: -1,
+  column: 0,
+  streetNumber: 0,
   type: '',
   boundaries: {
     start: [],
@@ -35,13 +35,15 @@ export const defaultSpace: Space = {
   },
   ownerID: null,
   price: {
-    purchase: -1,
+    purchase: 0,
     parking: [],
-    house: -1,
-    tax: -1,
+    house: 0,
+    tax: 0,
+    mortgage: 0,
   },
   color: '',
-  propertyNumber: -1,
+  propertyNumber: 0,
   houseCount: 0,
   playerIDsOnSpace: [],
+  mortgaged: false,
 }
