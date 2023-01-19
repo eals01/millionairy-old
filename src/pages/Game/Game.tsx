@@ -1,9 +1,10 @@
 import styled from 'styled-components'
 import { Physics } from '@react-three/cannon'
-import { OrbitControls } from '@react-three/drei'
+import { Environment, OrbitControls } from '@react-three/drei'
 import { LayoutCamera, MotionCanvas } from 'framer-motion-3d'
 import * as THREE from 'three'
 import { extend } from '@react-three/fiber'
+import { Perf } from 'r3f-perf'
 import socket from '../../socket'
 
 import Piece from './components/Piece/Piece'
@@ -19,6 +20,8 @@ import ChancePrompt from './components/Chance/ChancePrompt'
 import CurrencyBills from './components/CurrencyBills/CurrencyBills'
 import ActionButtons from './components/ActionButtons/ActionButtons'
 import { useLobby } from '../../context/LobbyContext'
+import House from './components/House/House'
+import Hotel from './components/Hotel/Hotel'
 
 extend(THREE)
 extend({ LayoutCamera })
@@ -39,15 +42,51 @@ export default function Game() {
       {trade.active && <TradeWindow />}
       {players.currentManagingProperties && <ManagePropertiesWindow />}
       <MotionCanvas shadows camera={{ position: [30, 30, 0] }}>
-        <Scene />
         <OrbitControls />
+        <Perf />
+        <Scene />
         <Physics gravity={[0, -12, 0]} allowSleep={true}>
           <Dice offset={0} />
           <Dice offset={2} />
           {[...Array(chanceCards.length)].map((_, index) => (
             <ChanceCard key={`chance${index}`} height={index / 4} />
           ))}
-          <Board />
+          <Board spaces={spaces} />
+          {spaces.map((space) => {
+            if (space.houseCount > 0 && space.houseCount !== 5) {
+              return <group>{[...Array(space.houseCount)].map((_, index) => {
+                return <House
+                  position={
+                    space.id <= 10 ?
+                      [space.boundaries.end[0] - 0.8, 0.5, space.boundaries.start[2] - 0.4 - index * 1.05]
+                      : space.id > 10 && space.id <= 20 ?
+                        [space.boundaries.end[0] + 0.4 + index * 1.05, 0.5, space.boundaries.end[2] - 0.7]
+                        : space.id > 20 && space.id <= 30 ?
+                          [space.boundaries.end[0] + 0.7, 0.5, space.boundaries.end[2] + 0.5 + index * 1.05]
+                          : [space.boundaries.end[0] - 0.5 - index * 1.05, 0.5, space.boundaries.start[2] + 0.7]
+                  }
+                  rotation={
+                    space.id <= 10 || space.id > 20 && space.id <= 30 ?
+                      [0, 0, 0] : [0, Math.PI / 2, 0]
+                  }
+                />
+              })}</group>
+            } else if (space.houseCount === 5) {
+              return <Hotel position={
+                space.id <= 10 ?
+                  [space.boundaries.end[0] - 0.8, 0.5, space.boundaries.start[2] - 2]
+                  : space.id > 10 && space.id <= 20 ?
+                    [space.boundaries.end[0] + 2, 0.5, space.boundaries.end[2] - 0.7]
+                    : space.id > 20 && space.id <= 30 ?
+                      [space.boundaries.end[0] + 0.7, 0.5, space.boundaries.end[2] + 2]
+                      : [space.boundaries.end[0] - 2, 0.5, space.boundaries.start[2] + 0.7]
+              }
+                rotation={
+                  space.id <= 10 || space.id > 20 && space.id <= 30 ?
+                    [0, 0, 0] : [0, Math.PI / 2, 0]
+                } />
+            }
+          })}
           <Table />
         </Physics>
         {players.list.map((player) => {

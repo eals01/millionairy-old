@@ -12,6 +12,9 @@ export default function ManagePropertiesWindow() {
     const { spaces, players } = useLobby()
     const [clickedSpace, setClickedSpace] = useState<Space>(deepClone(defaultSpace))
     const [displayedSpace, setDisplayedSpace] = useState<Space>(deepClone(defaultSpace))
+    const [housePurchasable, setHousePurchasable] = useState(false)
+    const [houseSellable, setHouseSellable] = useState(false)
+    const [mortgageable, setMortgageable] = useState(true)
 
     useEffect(() => {
         const ownedSpaces = spaces.filter((space) => space.ownerID === players.current.id)
@@ -21,6 +24,12 @@ export default function ManagePropertiesWindow() {
             setDisplayedSpace(firstOwnedSpace)
         }
     }, [])
+
+    useEffect(() => {
+        const space = spaces.find((space) => space.id === displayedSpace.id)
+        if (!space) return
+        setDisplayedSpace(space)
+    }, [spaces])
 
     function cancelManageProperties() {
         socket.emit('cancelManageProperties')
@@ -34,13 +43,46 @@ export default function ManagePropertiesWindow() {
         socket.emit('payMortgage', displayedSpace.id)
     }
 
-    function sellHouse() {
-        socket.emit('sellHouse', displayedSpace)
+    function purchaseHouse() {
+        socket.emit('purchaseHouse', displayedSpace.id)
     }
 
-    function purchaseHouse() {
-        socket.emit('purchaseHouse', displayedSpace)
+    function sellHouse() {
+        socket.emit('sellHouse', displayedSpace.id)
     }
+
+    useEffect(() => {
+        if (!displayedSpace.mortgaged) {
+            for (const space of spaces) {
+                if (space.column === displayedSpace.column && space.ownerID !== socket.id) {
+                    setHousePurchasable(false)
+                    break
+                }
+                setHousePurchasable(true)
+                setHouseSellable(true)
+            }
+
+            for (const space of spaces.filter(space => space.column === displayedSpace.column)) {
+                if (space.houseCount < displayedSpace.houseCount) {
+                    setHousePurchasable(false)
+                }
+            }
+
+            for (const space of spaces.filter(space => space.column === displayedSpace.column)) {
+                if (space.houseCount > displayedSpace.houseCount) {
+                    setHouseSellable(false)
+                }
+            }
+
+            for (const space of spaces.filter(space => space.column === displayedSpace.column)) {
+                if (space.houseCount > 0) {
+                    setMortgageable(false)
+                    break
+                }
+                setMortgageable(true)
+            }
+        }
+    }, [displayedSpace])
 
     return <Container>
         <div className='select'>
@@ -63,8 +105,11 @@ export default function ManagePropertiesWindow() {
                                     className={`propertyIcon ${owned ? 'owned' : 'unowned'} ${space === displayedSpace && 'selected'}`}
                                 >
                                     <div className='color' style={{ background: space.color }} />
-                                    <span>{space.houseCount}</span>
-                                    <img src={house} />
+                                    {space.type === 'property' && space.houseCount > 0 && (
+                                        <>
+                                            <span>{space.houseCount}</span>
+                                            <img src={house} />
+                                        </>)}
                                     {space.mortgaged && <div className='mortgageCross'><span>X</span></div>}
                                 </div>
                             }
@@ -110,12 +155,12 @@ export default function ManagePropertiesWindow() {
                 {displayedSpace.mortgaged && <div className='mortgageCross'><span>X</span></div>}
             </div>
             <div className='buttons'>
-                {!displayedSpace.mortgaged ? <button onClick={mortgage}>Mortgage</button> : <button onClick={payMortgage}>Pay mortgage</button>}
+                {!displayedSpace.mortgaged ? <button disabled={!mortgageable} onClick={mortgage}>Mortgage</button> : <button disabled={!mortgageable || players.current.money < displayedSpace.price.mortgage} onClick={payMortgage}>Pay mortgage</button>}
                 {displayedSpace.type === 'property' && <div>
-                    <button onClick={sellHouse}>-</button>
+                    <button disabled={!houseSellable} onClick={sellHouse}>-</button>
                     <span>{displayedSpace.houseCount}</span>
                     <img src={house} />
-                    <button onClick={purchaseHouse}>+</button>
+                    <button disabled={!housePurchasable || players.current.money < displayedSpace.price.house} onClick={purchaseHouse}>+</button>
                 </div>}
             </div>
         </div>
@@ -130,6 +175,7 @@ const Container = styled.div`
     display: flex;
 
     width: 90%;
+    max-width: 900px;
     height: 50%;
     background: white;
     border: 1px solid black;

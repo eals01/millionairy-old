@@ -24,7 +24,7 @@ export type Space = {
 }
 
 export const defaultSpace: Space = {
-  id: 0,
+  id: -1,
   name: '',
   column: 0,
   streetNumber: 0,

@@ -7,7 +7,7 @@ import { useFrame } from '@react-three/fiber'
 import model from './Dice.gltf'
 import socket from '../../../../socket'
 
-export default function Model({ offset }) {
+export default function Dice({ offset }) {
   const [yourTurn, setYourTurn] = useState(true)
   const [turnEndable, setTurnEndable] = useState(false)
 
@@ -51,9 +51,7 @@ export default function Model({ offset }) {
   }, [])
 
   useEffect(() => {
-    const unsubscribeVelocity = api.velocity.subscribe((velocity) =>
-      setVelocity(velocity)
-    )
+    const unsubscribeVelocity = api.velocity.subscribe((velocity) => setVelocity(velocity))
     const unsubscribeQuaternion = api.quaternion.subscribe((quaternion) =>
       setQuaternionRotation(quaternion)
     )
@@ -74,9 +72,7 @@ export default function Model({ offset }) {
 
   useFrame(() => {
     if (thrown && checkingForResult) {
-      let stopped =
-        Math.abs(velocity[0]) + Math.abs(velocity[1]) + Math.abs(velocity[2]) <
-        0.01
+      let stopped = Math.abs(velocity[0]) + Math.abs(velocity[1]) + Math.abs(velocity[2]) < 0.01
       if (stopped) {
         setThrown(false)
         setCheckingForResult(false)

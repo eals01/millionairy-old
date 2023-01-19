@@ -1,7 +1,6 @@
 import { Sky, Stars } from '@react-three/drei'
 import Box from './components/Box/Box'
 import Room from './components/Room/Room'
-import Table from './components/Table/Table'
 
 export default function Scene() {
   return (

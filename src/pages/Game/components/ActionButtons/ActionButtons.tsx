@@ -49,7 +49,7 @@ export default function ActionButtons() {
       <button onClick={throwDice} disabled={!(dice.throwable)}>
         Throw Dice
       </button>
-      <button onClick={purchaseProperty} disabled={!(finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)) && spacePurchasable)}>
+      <button onClick={purchaseProperty} disabled={!(finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)) && spacePurchasable) || players.current.money < players.current.currentSpace.price.purchase}>
         Purchase property
       </button>
       <button onClick={toggleManageProperties} disabled={!(ownedSpaces.length > 0 && finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
