@@ -30,9 +30,7 @@ export default function Game() {
   const { players, spaces, chanceCards, trade } = useLobby()
 
   const playerRotations =
-    players.list.length === 2
-      ? [0, Math.PI]
-      : [0, Math.PI, Math.PI / 2, -Math.PI / 2]
+    players.list.length === 2 ? [0, Math.PI] : [0, Math.PI, Math.PI / 2, -Math.PI / 2]
 
   const yourTurn = players.current.id === socket.id
   return (
@@ -43,7 +41,7 @@ export default function Game() {
       {players.currentManagingProperties && <ManagePropertiesWindow />}
       <MotionCanvas shadows camera={{ position: [30, 30, 0] }}>
         <OrbitControls />
-        <Perf />
+        {/*<Perf />*/}
         <Scene />
         <Physics gravity={[0, -12, 0]} allowSleep={true}>
           <Dice offset={0} />
@@ -54,37 +52,65 @@ export default function Game() {
           <Board spaces={spaces} />
           {spaces.map((space) => {
             if (space.houseCount > 0 && space.houseCount !== 5) {
-              return <group>{[...Array(space.houseCount)].map((_, index) => {
-                return <House
+              return (
+                <group>
+                  {[...Array(space.houseCount)].map((_, index) => {
+                    return (
+                      <House
+                        position={
+                          space.id <= 10
+                            ? [
+                                space.boundaries.end[0] - 0.8,
+                                0.5,
+                                space.boundaries.start[2] - 0.4 - index * 1.05,
+                              ]
+                            : space.id > 10 && space.id <= 20
+                            ? [
+                                space.boundaries.end[0] + 0.4 + index * 1.05,
+                                0.5,
+                                space.boundaries.end[2] - 0.7,
+                              ]
+                            : space.id > 20 && space.id <= 30
+                            ? [
+                                space.boundaries.end[0] + 0.7,
+                                0.5,
+                                space.boundaries.end[2] + 0.5 + index * 1.05,
+                              ]
+                            : [
+                                space.boundaries.end[0] - 0.5 - index * 1.05,
+                                0.5,
+                                space.boundaries.start[2] + 0.7,
+                              ]
+                        }
+                        rotation={
+                          space.id <= 10 || (space.id > 20 && space.id <= 30)
+                            ? [0, 0, 0]
+                            : [0, Math.PI / 2, 0]
+                        }
+                      />
+                    )
+                  })}
+                </group>
+              )
+            } else if (space.houseCount === 5) {
+              return (
+                <Hotel
                   position={
-                    space.id <= 10 ?
-                      [space.boundaries.end[0] - 0.8, 0.5, space.boundaries.start[2] - 0.4 - index * 1.05]
-                      : space.id > 10 && space.id <= 20 ?
-                        [space.boundaries.end[0] + 0.4 + index * 1.05, 0.5, space.boundaries.end[2] - 0.7]
-                        : space.id > 20 && space.id <= 30 ?
-                          [space.boundaries.end[0] + 0.7, 0.5, space.boundaries.end[2] + 0.5 + index * 1.05]
-                          : [space.boundaries.end[0] - 0.5 - index * 1.05, 0.5, space.boundaries.start[2] + 0.7]
+                    space.id <= 10
+                      ? [space.boundaries.end[0] - 0.8, 0.5, space.boundaries.start[2] - 2]
+                      : space.id > 10 && space.id <= 20
+                      ? [space.boundaries.end[0] + 2, 0.5, space.boundaries.end[2] - 0.7]
+                      : space.id > 20 && space.id <= 30
+                      ? [space.boundaries.end[0] + 0.7, 0.5, space.boundaries.end[2] + 2]
+                      : [space.boundaries.end[0] - 2, 0.5, space.boundaries.start[2] + 0.7]
                   }
                   rotation={
-                    space.id <= 10 || space.id > 20 && space.id <= 30 ?
-                      [0, 0, 0] : [0, Math.PI / 2, 0]
+                    space.id <= 10 || (space.id > 20 && space.id <= 30)
+                      ? [0, 0, 0]
+                      : [0, Math.PI / 2, 0]
                   }
                 />
-              })}</group>
-            } else if (space.houseCount === 5) {
-              return <Hotel position={
-                space.id <= 10 ?
-                  [space.boundaries.end[0] - 0.8, 0.5, space.boundaries.start[2] - 2]
-                  : space.id > 10 && space.id <= 20 ?
-                    [space.boundaries.end[0] + 2, 0.5, space.boundaries.end[2] - 0.7]
-                    : space.id > 20 && space.id <= 30 ?
-                      [space.boundaries.end[0] + 0.7, 0.5, space.boundaries.end[2] + 2]
-                      : [space.boundaries.end[0] - 2, 0.5, space.boundaries.start[2] + 0.7]
-              }
-                rotation={
-                  space.id <= 10 || space.id > 20 && space.id <= 30 ?
-                    [0, 0, 0] : [0, Math.PI / 2, 0]
-                } />
+              )
             }
           })}
           <Table />
@@ -92,11 +118,7 @@ export default function Game() {
         {players.list.map((player) => {
           return (
             <>
-              <Piece
-                key={'piece' + player.id}
-                player={player}
-                spaces={spaces}
-              />
+              <Piece key={'piece' + player.id} player={player} spaces={spaces} />
               <CurrencyBills
                 key={'moneyCollection' + player.id}
                 position={[31, -0.15, 4.5]}

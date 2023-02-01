@@ -5,12 +5,7 @@ import Room from './components/Room/Room'
 export default function Scene() {
   return (
     <>
-      {/*<Sky
-        distance={450000}
-        sunPosition={[0, -0.1, -1]}
-        inclination={0}
-        azimuth={0.25}
-      />
+      <Sky distance={450000} sunPosition={[0, -0.1, -1]} inclination={0} azimuth={0.25} />
       <Stars radius={300} />
       <pointLight
         position={[-150, 200, -400]}
@@ -30,10 +25,10 @@ export default function Scene() {
         shadow-mapSize-width={512}
         shadow-radius={1}
         shadow-bias={-0.0001}
-      />*/}
+      />
       <ambientLight intensity={0.5} />
       <Box />
-      {/*<Room />*/}
+      <Room />
     </>
   )
 }
