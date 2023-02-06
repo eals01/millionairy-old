@@ -34,7 +34,7 @@ export default function Home() {
       >
         <h2>Loading ...</h2>
         <p>
-          This service is hosted on a <a href='https://www.render.com'>render.com</a>'s free tier.
+          This service is hosted on <a href='https://www.render.com'>render.com</a>'s free tier.
           Please wait a second for the server to spin up 😋
         </p>
       </div>
