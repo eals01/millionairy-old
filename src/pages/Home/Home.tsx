@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import socket from '../../socket'
 
 export default function Home() {
+  const [loading, setLoading] = useState(true)
   const [lobbyCode, setLobbyCode] = useState('')
 
   function createLobby() {
@@ -13,6 +14,31 @@ export default function Home() {
     socket.emit('joinLobby', code)
   }
 
+  useEffect(() => {
+    socket.on('connect', () => {
+      setLoading(false)
+    })
+  }, [])
+
+  if (loading)
+    return (
+      <div
+        style={{
+          width: '100vw',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <h2>Loading ...</h2>
+        <p>
+          This service is hosted on a <a href='https://www.render.com'>render.com</a>'s free tier.
+          Please wait a second for the server to spin up 😋
+        </p>
+      </div>
+    )
   return (
     <HomeContainer>
       <h1>Millionairy</h1>
