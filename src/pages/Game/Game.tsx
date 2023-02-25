@@ -22,6 +22,7 @@ import ActionButtons from './components/ActionButtons/ActionButtons'
 import { useLobby } from '../../context/LobbyContext'
 import House from './components/House/House'
 import Hotel from './components/Hotel/Hotel'
+import PlayerList from './components/PlayerList/PlayerList'
 
 extend(THREE)
 extend({ LayoutCamera })
@@ -35,6 +36,7 @@ export default function Game() {
   const yourTurn = players.current.id === socket.id
   return (
     <GameContainer>
+      <PlayerList />
       <ChancePrompt yourTurn={yourTurn} />
       <ActionButtons />
       {trade.active && <TradeWindow />}
