@@ -16,7 +16,7 @@ export default function ActionButtons() {
   }
 
   function showTradeOptions() {
-    if (players.list.length > 1) {
+    if (!(players.list.length === 1 || !(finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1))))) {
       setTradeOptionsVisible(true)
     }
   }
@@ -73,7 +73,7 @@ export default function ActionButtons() {
       >
         Manage Properties
       </button>
-      {/*<div className='trade' onMouseEnter={showTradeOptions} onMouseLeave={hideTradeOptions}>
+      <div className='trade' onMouseEnter={showTradeOptions} onMouseLeave={hideTradeOptions}>
         <button disabled={players.list.length === 1 || !(finishedMoving && (!dice.throwable || (dice.throwable && dice.throwsInARow >= 1)))}>
           Trade
         </button>
@@ -84,7 +84,7 @@ export default function ActionButtons() {
             }
           })}
         </div>}
-        </div>*/}
+        </div>
       <button onClick={endTurn} disabled={!finishedMoving || dice.throwable}>
         End turn
       </button>

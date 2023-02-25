@@ -20,8 +20,18 @@ export type Lobby = {
   }
   trade: {
     active: boolean
-    leftPlayer: Player
-    rightPlayer: Player
+    left: {
+      player: Player
+      properties: Space[]
+      money: number
+      ready: boolean
+    }
+    right: {
+      player: Player
+      properties: Space[]
+      money: number
+      ready: boolean
+    }
   }
   chat: Message[]
   spaces: Space[]
@@ -45,8 +55,18 @@ export const defaultLobby: Lobby = {
   },
   trade: {
     active: false,
-    leftPlayer: deepClone(defaultPlayer),
-    rightPlayer: deepClone(defaultPlayer),
+    left: {
+      player: deepClone(defaultPlayer),
+      properties: [],
+      money: 0,
+      ready: false
+    },
+    right: {
+      player: deepClone(defaultPlayer),
+      properties: [],
+      money: 0,
+      ready: false
+    },
   },
   chat: [],
   spaces: [],

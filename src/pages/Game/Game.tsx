@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { Physics } from '@react-three/cannon'
-import { Environment, OrbitControls } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { LayoutCamera, MotionCanvas } from 'framer-motion-3d'
 import * as THREE from 'three'
 import { extend } from '@react-three/fiber'
@@ -41,7 +41,7 @@ export default function Game() {
       {players.currentManagingProperties && <ManagePropertiesWindow />}
       <MotionCanvas shadows camera={{ position: [30, 30, 0] }}>
         <OrbitControls />
-        {/*<Perf />*/}
+        <Perf />
         <Scene />
         <Physics gravity={[0, -12, 0]} allowSleep={true}>
           <Dice offset={0} />
